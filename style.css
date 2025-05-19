@@ -1,0 +1,548 @@
+/* ==========================================================================
+   1. CSS Custom Properties (Variables) - NEON THEME
+   ========================================================================== */
+:root {
+    --font-primary: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-monospace: 'Consolas', 'Monaco', monospace;
+    --font-logo-subtitle: 'Orbitron', sans-serif;
+
+    --color-neon-cyan: #33f7f7;
+    --color-neon-magenta: #f0f;
+    --color-neon-lime: #9FFF77;
+    --color-neon-purple: #7b03fc;
+    --color-deep-purple: #4f0291; 
+    --color-dark-background: #000000; 
+    --color-content-background: #1a1a1a; 
+    --color-card-background: #222222; 
+    --color-card-header-bg: #2c2c2c; 
+    --color-card-border: var(--color-neon-cyan);
+
+    --color-text-primary-glow: var(--color-neon-magenta);
+    --color-text-secondary-glow: var(--color-neon-cyan);
+    --color-text-default: #e0e0e0; 
+    --color-text-headings: var(--color-neon-lime);
+    --color-text-placeholder: #888;
+    --color-text-white: #fff; 
+    --color-text-negative: #ff4f4f; 
+    --color-text-carrier: #ff9a3d; 
+
+    --color-background-silhouette: #111; 
+    --color-background-lightbox-image: transparent; 
+    --color-background-tooltip: rgba(20, 20, 20, 0.95);
+    --color-border-tooltip: var(--color-neon-purple);
+    --color-text-tooltip: #ccc;
+    --color-text-tooltip-highlight: var(--color-neon-lime);
+
+    --color-button-primary-bg: var(--color-neon-lime);
+    --color-button-primary-text: #000;
+    --color-button-primary-hover-bg: #beffac;
+    --color-button-delete-bg: #d32f2f;
+    --color-button-delete-hover-bg: #b71c1c;
+    --color-button-export-bg: var(--color-neon-purple);
+    --color-button-export-hover-bg: var(--color-deep-purple);
+    --color-button-import-bg: var(--color-neon-cyan);
+    --color-button-import-text: #000;
+    --color-button-import-hover-bg: #6fffff;
+    --color-button-breeder-add-disabled-bg: #555;
+    --color-button-breeder-add-disabled-text: #888;
+
+
+    --glow-text-magenta: 0 0 3px var(--color-text-white), 0 0 5px var(--color-neon-magenta), 0 0 10px var(--color-neon-magenta);
+    --glow-text-cyan: 0 0 3px var(--color-text-white), 0 0 5px var(--color-neon-cyan), 0 0 10px var(--color-neon-cyan);
+    --glow-text-lime: 0 0 3px var(--color-text-white),0 0 5px var(--color-neon-lime), 0 0 10px var(--color-neon-lime);
+    --glow-box-cyan: 0 0 5px var(--color-neon-cyan), 0 0 10px rgba(51, 247, 247, 0.3);
+    --glow-box-magenta: 0 0 5px var(--color-neon-magenta), 0 0 10px rgba(255, 0, 255, 0.3);
+    --glow-box-purple: 0 0 8px var(--color-neon-purple), 0 0 15px rgba(123, 3, 252, 0.4);
+    --glow-box-lime: 0 0 5px var(--color-neon-lime), 0 0 10px rgba(159, 255, 119, 0.3);
+
+    --border-radius-small: 4px;
+    --border-radius-medium: 6px;
+    --border-radius-large: 8px;
+
+    --spacing-small: 5px;
+    --spacing-medium: 10px;
+    --spacing-large: 15px;
+    --spacing-xlarge: 20px;
+}
+
+/* ==========================================================================
+   2. Global Styles & Resets
+   ========================================================================== */
+body {
+    font-family: var(--font-primary);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-dark-background);
+    color: var(--color-text-default);
+}
+
+/* ==========================================================================
+   3. Layout Components (Header, Footer, Page Container)
+   ========================================================================== */
+header {
+    background: var(--color-dark-background);
+    color: var(--color-text-white);
+    padding: 0.5rem 0;
+    text-align: center;
+    border-bottom: 1px solid var(--color-deep-purple);
+}
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing-medium) 0;
+}
+
+#game-logo {
+    max-width: 90%;
+    height: auto;
+    max-height: 100px;
+}
+
+.page-container {
+    display: flex;
+    flex-direction: row; 
+    margin: 0 auto;
+    max-width: 1800px; 
+    padding: var(--spacing-xlarge); 
+    gap: var(--spacing-xlarge);
+}
+
+#side-panel {
+    width: 340px; 
+    min-width: 320px; 
+    flex-shrink: 0; 
+    background-color: var(--color-content-background); 
+    padding: var(--spacing-large);
+    border-radius: var(--border-radius-large);
+    border: 1px solid var(--color-deep-purple);
+    box-shadow: var(--glow-box-purple);
+    height: fit-content; 
+    position: sticky; 
+    top: var(--spacing-xlarge); 
+    max-height: calc(100vh - (2 * var(--spacing-xlarge)) - 70px); 
+    overflow-y: auto; 
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xlarge); 
+}
+
+.side-panel-section {
+    border-bottom: 1px dashed var(--color-deep-purple);
+    padding-bottom: var(--spacing-large);
+}
+.side-panel-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+#main-content {
+    flex-grow: 1; 
+}
+
+footer {
+    text-align: center;
+    margin-top: var(--spacing-xlarge);
+    padding: var(--spacing-large);
+    background: var(--color-dark-background); 
+    font-size: 0.9em;
+    color: #aaa;
+    border-top: 1px solid var(--color-deep-purple);
+}
+
+/* ==========================================================================
+   4. Typography
+   ========================================================================== */
+h2, h3, h4 { 
+    color: var(--color-text-headings);
+    text-shadow: var(--glow-text-lime);
+    margin-bottom: var(--spacing-medium); 
+}
+#side-panel h2, #side-panel h3, #side-panel h4 {
+    margin-top: 0; 
+}
+#side-panel h3 { font-size: 1.15em; } 
+#side-panel .parent-slot h3 { font-size: 1.0em; text-align: center; } 
+#side-panel #offspring-display h4 { 
+    font-size: 1em; 
+    margin-bottom: var(--spacing-small); 
+    color: var(--color-neon-cyan); 
+    text-shadow: var(--glow-text-cyan);
+}
+#main-content #nursery h2 { 
+    margin-top: 0;
+}
+
+
+/* ==========================================================================
+   5. Plant Card Component (Collapsible, Click-to-Assign)
+   ========================================================================== */
+.plant-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-xlarge);
+}
+
+.plant-card {
+    background: var(--color-card-background);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--border-radius-large);
+    padding: 0; 
+    box-shadow: var(--glow-box-cyan);
+    transition: transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    color: var(--color-text-default);
+    overflow: hidden; 
+    cursor: default; /* Base cursor for the card */
+}
+
+#nursery .plant-card:hover:not(.selected-for-breeding) {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 0 10px var(--color-neon-cyan), 0 0 20px rgba(51, 247, 247, 0.7);
+    border-color: var(--color-neon-magenta);
+}
+
+.plant-card.selected-for-breeding { 
+    border: 3px solid var(--color-neon-magenta);
+    background-color: #333; 
+    box-shadow: 0 0 15px var(--color-neon-magenta), 0 0 25px rgba(255, 0, 255, 0.7);
+}
+
+.plant-card-header {
+    padding: var(--spacing-medium) var(--spacing-large);
+    background-color: var(--color-card-header-bg);
+    /* cursor: default; Clicks handled by buttons or specific areas */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--color-deep-purple); 
+}
+
+/* Removed .dragging-header and .plant-card.dragging as D&D is removed */
+
+.plant-card-header h4 {
+    margin: 0;
+    color: var(--color-neon-lime);
+    font-size: 1.1em; 
+    text-shadow: var(--glow-text-lime);
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+    margin-right: var(--spacing-small); /* Space before button */
+}
+
+/* Breeder Action Button in Card Header */
+.breeder-action-button {
+    padding: var(--spacing-small) var(--spacing-medium);
+    margin-left: var(--spacing-medium);
+    border: none;
+    border-radius: var(--border-radius-small);
+    color: var(--color-button-primary-text);
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.85em;
+    min-width: 90px; /* Adjusted min-width */
+    text-align: center;
+    flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+.breeder-action-button.add {
+    background-color: var(--color-neon-lime);
+    box-shadow: 0 0 3px var(--color-neon-lime);
+}
+.breeder-action-button.add:hover:not(:disabled) {
+    background-color: var(--color-button-primary-hover-bg);
+}
+.breeder-action-button.add:disabled {
+    background-color: var(--color-button-breeder-add-disabled-bg);
+    color: var(--color-button-breeder-add-disabled-text);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.breeder-action-button.remove {
+    background-color: var(--color-button-delete-bg);
+    color: var(--color-text-white);
+    box-shadow: 0 0 3px var(--color-button-delete-bg);
+}
+.breeder-action-button.remove:hover {
+    background-color: var(--color-button-delete-hover-bg);
+}
+
+
+.plant-card-content-wrapper {
+    padding: 0 var(--spacing-large) var(--spacing-large);
+}
+
+.plant-silhouette { 
+    margin-top: var(--spacing-medium); 
+    margin-bottom: var(--spacing-medium);
+    cursor: pointer; 
+    transition: transform 0.2s ease-out;
+}
+.plant-silhouette:hover {
+    transform: scale(1.05);
+}
+.plant-silhouette svg {
+    width: 100%;
+    max-height: 150px;
+    border: 1px solid var(--color-deep-purple);
+    background-color: var(--color-background-silhouette); 
+    border-radius: var(--border-radius-small);
+}
+
+.plant-card-section {
+    margin-top: var(--spacing-medium);
+    border-top: 1px dashed rgba(123, 3, 252, 0.4);
+    padding-top: var(--spacing-medium);
+}
+.plant-card-content-wrapper > .plant-card-section:first-of-type { 
+    border-top: none;
+    margin-top: 0; 
+    padding-top: var(--spacing-small);
+}
+
+.plant-card-section-title {
+    font-weight: bold;
+    color: var(--color-neon-cyan);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-small) 0;
+    user-select: none; 
+}
+.plant-card-section-title:hover { color: var(--color-neon-magenta); }
+
+.plant-card-section-toggle {
+    font-size: 0.9em; 
+    margin-left: var(--spacing-small);
+    transition: transform 0.2s ease-in-out;
+    padding: 0 var(--spacing-small); 
+}
+
+.plant-card-section-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease-in-out, padding-top 0.35s ease-in-out, padding-bottom 0.35s ease-in-out;
+    padding-left: var(--spacing-medium); 
+    padding-top: 0; padding-bottom: 0;
+}
+.plant-card-section-content.expanded {
+    max-height: 500px; 
+    padding-top: var(--spacing-small);
+    padding-bottom: var(--spacing-small);
+}
+.plant-card-section-content p { margin: var(--spacing-small) 0; font-size: 0.9em; line-height: 1.4; }
+.plant-card p strong { color: var(--color-neon-lime); }
+.plant-card .negative-trait { color: var(--color-text-negative); font-weight: bold; font-style: italic; text-shadow: 0 0 5px var(--color-text-negative); }
+.plant-card .carrier-trait { color: var(--color-text-carrier); font-style: italic; text-shadow: 0 0 5px var(--color-text-carrier); }
+
+.plant-card-actions {
+    margin-top: var(--spacing-medium);
+    padding: var(--spacing-medium) var(--spacing-large) var(--spacing-large); 
+    border-top: 1px solid var(--color-deep-purple);
+    display: flex; 
+    flex-direction: column; 
+    gap: var(--spacing-medium); 
+}
+.plant-card .delete-plant-button,
+.plant-card .export-plant-button {
+    margin-top: 0; 
+    width: 100%; 
+    box-sizing: border-box;
+    padding: 8px 10px; 
+}
+
+/* Clicks on card body (not header/buttons/section-titles) handled by JS if needed */
+.plant-card button, .plant-card .plant-card-section-title {
+    cursor: pointer;
+}
+
+
+/* ==========================================================================
+   6. Breeding Station in Side Panel
+   ========================================================================== */
+#breeding-station { margin-top: 0; padding: 0; border: none; box-shadow: none; }
+
+.breeder-slots {
+    display: flex;
+    flex-direction: row; 
+    justify-content: space-between; 
+    gap: var(--spacing-medium);
+    margin-bottom: var(--spacing-medium);
+}
+
+.parent-slot {
+    width: calc(50% - (var(--spacing-medium) / 2)); 
+    min-height: 200px; 
+    border: 2px dashed var(--color-neon-purple);
+    padding: var(--spacing-small);
+    border-radius: var(--border-radius-medium);
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    justify-content: flex-start; 
+}
+.parent-slot h3 { margin-bottom: var(--spacing-small); }
+
+.plant-card-placeholder {
+    text-align: center;
+    color: var(--color-text-placeholder);
+    padding: var(--spacing-xlarge);
+    font-style: italic;
+    flex-grow: 1; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9em;
+}
+
+.parent-slot .plant-card { 
+    width: 100%; 
+    height: 100%; 
+    box-shadow: none; 
+    border-color: var(--color-neon-magenta); 
+    padding: 0; 
+}
+.parent-slot .plant-card .plant-card-header { padding: var(--spacing-small) var(--spacing-medium); }
+.parent-slot .plant-card .plant-card-header h4 { font-size: 0.9em; }
+/* Remove breeder-action-button specific width for parent slot as it should fill */
+.parent-slot .plant-card .breeder-action-button { font-size: 0.8em; min-width: auto; }
+
+.parent-slot .plant-card .plant-card-content-wrapper { padding: 0 var(--spacing-medium) var(--spacing-medium); }
+.parent-slot .plant-card .plant-silhouette svg { max-height: 60px; margin-bottom: var(--spacing-small); background-color: var(--color-background-silhouette); }
+.parent-slot .plant-card .plant-silhouette { cursor: default; } 
+.parent-slot .plant-card .plant-silhouette:hover { transform: none; }
+.parent-slot .plant-card .plant-card-section { display: none; } 
+.parent-slot .plant-card .plant-card-actions { display: none; }
+
+#offspring-display { margin-top: var(--spacing-medium); text-align: left; }
+#offspring-display .plant-card {
+    max-width: 100%; 
+    margin: var(--spacing-medium) 0 0 0; 
+    border-color: var(--color-neon-lime);
+    box-shadow: var(--glow-box-lime);
+    padding:0;
+}
+#offspring-display .plant-card .plant-card-header { padding: var(--spacing-small) var(--spacing-medium); }
+#offspring-display .plant-card .plant-card-header h4 { font-size: 0.9em; }
+#offspring-display .plant-card .breeder-action-button { display: none; } /* No add/remove for offspring preview */
+#offspring-display .plant-card .plant-card-content-wrapper { padding: 0 var(--spacing-medium) var(--spacing-medium); }
+#offspring-display .plant-card .plant-silhouette svg { max-height: 70px; margin-bottom: var(--spacing-small); background-color: var(--color-background-silhouette); }
+#offspring-display .plant-card .plant-silhouette { cursor: default; }
+#offspring-display .plant-card .plant-silhouette:hover { transform: none; }
+#offspring-display .plant-card .plant-card-section { display: none; } 
+#offspring-display .plant-card .plant-card-actions { display: none; }
+
+
+/* ==========================================================================
+   7. Buttons (General and Specific - outside cards)
+   ========================================================================== */
+#breed-button {
+    display: block; width: 100%; margin: var(--spacing-medium) auto; padding: 10px 20px; 
+    background-color: var(--color-button-primary-bg); color: var(--color-button-primary-text);
+    border: none; border-radius: var(--border-radius-medium); font-size: 1.05em; font-weight: bold;
+    cursor: pointer; transition: background-color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 0 5px var(--color-button-primary-bg), 0 0 10px rgba(159, 255, 119, 0.5);
+}
+#breed-button:disabled { background-color: var(--color-button-breeder-add-disabled-bg); color: var(--color-button-breeder-add-disabled-text); cursor: not-allowed; box-shadow: none; }
+#breed-button:not(:disabled):hover { background-color: var(--color-button-primary-hover-bg); box-shadow: 0 0 8px var(--color-button-primary-hover-bg), 0 0 15px rgba(190, 255, 172, 0.7); }
+
+/* Card action buttons (Delete/Export) already styled within .plant-card-actions */
+.plant-card .delete-plant-button { background-color: var(--color-button-delete-bg); }
+.plant-card .delete-plant-button:hover { background-color: var(--color-button-delete-hover-bg); }
+.plant-card .export-plant-button { background-color: var(--color-button-export-bg); }
+.plant-card .export-plant-button:hover { background-color: var(--color-button-export-hover-bg); }
+
+
+/* ==========================================================================
+   8. Import/Export Station in Side Panel
+   ========================================================================== */
+/* ... (Import/Export station styles - same as previous full version) ... */
+#import-export-station { margin-top: 0; padding: 0; border: none; box-shadow: none; }
+#import-data-area { width: 100%; min-height: 80px; padding: var(--spacing-medium); border-radius: var(--border-radius-small); border: 1px solid var(--color-neon-purple); background-color: #111; color: var(--color-text-default); font-family: var(--font-monospace); box-sizing: border-box; margin-bottom: var(--spacing-medium); }
+#import-strain-button { background-color: var(--color-button-import-bg); color: var(--color-button-import-text); font-weight: bold; padding: 10px 20px; border: none; border-radius: var(--border-radius-medium); cursor: pointer; transition: background-color 0.3s, box-shadow 0.3s; box-shadow: 0 0 5px var(--color-neon-cyan), 0 0 10px rgba(51, 247, 247, 0.5); width: 100%; }
+#import-strain-button:hover { background-color: var(--color-button-import-hover-bg); box-shadow: 0 0 8px var(--color-neon-cyan), 0 0 15px rgba(51, 247, 247, 0.7); }
+.export-instructions p { font-style: italic; color: #aaa; font-size: 0.9em; }
+
+
+/* ==========================================================================
+   9. Lineage Tooltip & Modals (Export & Lightbox)
+   ========================================================================== */
+/* ... (Lineage tooltip, Modal, Lightbox styles - same as previous full version) ... */
+.lineage-tooltip { position: absolute; background-color: var(--color-background-tooltip); border: 1px solid var(--color-border-tooltip); padding: 12px; border-radius: var(--border-radius-medium); box-shadow: 0 0 10px var(--color-neon-purple), 0 0 15px rgba(123, 3, 252, 0.5); font-family: var(--font-monospace); font-size: 0.85em; line-height: 1.5; white-space: pre; z-index: 1000; max-width: 350px; max-height: 400px; overflow-y: auto; pointer-events: none; color: var(--color-text-tooltip); }
+.lineage-tooltip strong { color: var(--color-text-tooltip-highlight); font-weight: bold; text-shadow: 0 0 3px var(--color-text-tooltip-highlight); }
+.modal { position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; }
+.modal-content { background-color: var(--color-content-background); margin: auto; padding: var(--spacing-xlarge); border: 1px solid var(--color-neon-magenta); box-shadow: var(--glow-box-magenta); width: 80%; max-width: 500px; border-radius: var(--border-radius-large); position: relative; color: var(--color-text-default); }
+.modal-content h3 { color: var(--color-neon-magenta); text-shadow: var(--glow-text-magenta); margin-top: 0; }
+.close-button { color: #aaa; position: absolute; top: var(--spacing-medium); right: var(--spacing-xlarge); font-size: 28px; font-weight: bold; cursor: pointer; }
+.close-button:hover, .close-button:focus { color: var(--color-neon-magenta); text-decoration: none; }
+#exported-strain-data { width: 100%; min-height: 150px; padding: var(--spacing-medium); border-radius: var(--border-radius-small); border: 1px solid var(--color-neon-purple); background-color: #111; color: var(--color-text-default); font-family: var(--font-monospace); box-sizing: border-box; margin-bottom: var(--spacing-medium); resize: vertical; }
+#copy-exported-data-button { background-color: var(--color-neon-lime); color: #000; padding: 10px 15px; border: none; border-radius: var(--border-radius-medium); cursor: pointer; font-weight: bold; }
+#copy-exported-data-button:hover { background-color: #beffac; }
+.modal.lightbox { background-color: rgba(0,0,0,0.85); }
+.lightbox-content { border-color: var(--color-neon-lime); box-shadow: var(--glow-box-lime); max-width: 600px; text-align: center; }
+.lightbox-content h3 { color: var(--color-neon-lime); text-shadow: var(--glow-text-lime); margin-bottom: var(--spacing-medium); }
+#lightbox-image-container { width: 100%; max-height: 70vh; margin-bottom: var(--spacing-large); display: flex; justify-content: center; align-items: center; background-color: var(--color-background-lightbox-image); }
+#lightbox-image-container svg, #lightbox-image-container canvas, #lightbox-image-container img { max-width: 100%; max-height: 100%; object-fit: contain; border: 1px solid var(--color-deep-purple); border-radius: var(--border-radius-small); background-color: var(--color-background-silhouette); }
+.lightbox-actions { display: flex; justify-content: center; gap: var(--spacing-medium); margin-top: var(--spacing-medium); }
+.lightbox-actions button { padding: 10px 15px; border: none; border-radius: var(--border-radius-medium); cursor: pointer; font-weight: bold; transition: background-color 0.3s, box-shadow 0.3s; }
+#download-plant-image-btn { background-color: var(--color-button-primary-bg); color: var(--color-button-primary-text); box-shadow: 0 0 5px var(--color-button-primary-bg); }
+#download-plant-image-btn:hover { background-color: var(--color-button-primary-hover-bg); }
+#download-plant-data-btn { background-color: var(--color-neon-cyan); color: var(--color-button-import-text); box-shadow: 0 0 5px var(--color-neon-cyan); }
+#download-plant-data-btn:hover { background-color: var(--color-button-import-hover-bg); }
+
+
+/* ==========================================================================
+   10. Drag and Drop Styles (Remove if D&D fully replaced by click)
+   ========================================================================== */
+/* Remove .parent-slot.drag-over, #plant-inventory.drag-over if D&D is gone */
+/* If keeping some D&D for other things, these can stay or be adapted */
+.parent-slot.drag-over,
+#plant-inventory.drag-over { 
+    background-color: var(--color-deep-purple) !important; 
+    border-style: solid !important; 
+    border-color: var(--color-neon-lime) !important;
+    opacity: 0.8; 
+}
+/* If .plant-card-header is no longer draggable, this rule may be less relevant */
+/* .parent-slot .plant-card .plant-card-header { cursor: grab; } */
+
+
+/* ==========================================================================
+   11. Responsive Adjustments
+   ========================================================================== */
+@media (max-width: 900px) { 
+    .page-container {
+        flex-direction: column; 
+    }
+    #side-panel {
+        width: 100%; 
+        position: static; 
+        max-height: none; 
+        margin-bottom: var(--spacing-xlarge);
+        overflow-y: visible;
+    }
+}
+
+@media (max-width: 480px) { 
+    .breeder-slots {
+        flex-direction: column; 
+        gap: var(--spacing-large);
+    }
+    .parent-slot {
+        width: 100%; 
+        min-height: 180px; 
+    }
+    .plant-card-header h4 {
+        font-size: 1em; 
+    }
+    #game-logo {
+        max-height: 80px;
+    }
+}

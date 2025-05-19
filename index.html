@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronoCrosser: Cannabis Cultivator</title>
+
+    <!-- Favicon Links -->
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png"> {/* Common size for apple-touch-icon */}
+    <link rel="icon" type="image/png" sizes="192x192" href="images/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="images/android-chrome-512x512.png">
+    
+    {/* Optional: Web App Manifest (if you plan to make it a PWA) */}
+    {/* <link rel="manifest" href="site.webmanifest"> */}
+    
+    {/* Optional: Theme color for browser UI (e.g., on Android Chrome) */}
+    {/* <meta name="theme-color" content="#000000"> */}
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="images/logo.png" alt="ChronoCrosser Logo" id="game-logo">
+        </div>
+    </header>
+
+    <div class="page-container"> 
+        <aside id="side-panel">
+            <section id="breeding-station" class="side-panel-section">
+                <h2>Breeding Station</h2>
+                <div class="breeder-slots"> 
+                    <div id="parent1-slot" class="parent-slot">
+                        <h3>Parent 1</h3>
+                        <div class="plant-card-placeholder">Click "+ Breeder" on Plant</div>
+                    </div>
+                    <div id="parent2-slot" class="parent-slot">
+                        <h3>Parent 2</h3>
+                        <div class="plant-card-placeholder">Click "+ Breeder" on Plant</div>
+                    </div>
+                </div>
+                <button id="breed-button" disabled>Breed Plants</button>
+                <div id="offspring-display">
+                    <h4>New Offspring:</h4> 
+                    <div class="plant-card-placeholder">Offspring appears after breeding.</div>
+                </div>
+            </section>
+
+            <section id="import-export-station" class="side-panel-section">
+                <h2>Strain Share</h2>
+                <div class="import-area">
+                    <h3>Import Strain Card</h3>
+                    <textarea id="import-data-area" placeholder="Paste strain card data here..."></textarea>
+                    <button id="import-strain-button">Import Strain</button>
+                </div>
+                <div class="export-instructions">
+                    <p>To export: Click "Export" on a plant card in your Nursery.</p>
+                </div>
+            </section>
+        </aside>
+
+        <main id="main-content"> 
+            <section id="nursery">
+                <h2>My Nursery</h2>
+                <div id="plant-inventory" class="plant-grid">
+                    <!-- Plant cards will be dynamically added here -->
+                </div>
+            </section>
+        </main>
+    </div> 
+
+    <div id="lineage-tooltip" class="lineage-tooltip" style="display: none;"></div>
+    
+    <div id="export-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-button" id="close-export-modal">×</span>
+            <h3>Strain Card Data</h3>
+            <p>Copy the text below to share your strain:</p>
+            <textarea id="exported-strain-data" readonly></textarea>
+            <button id="copy-exported-data-button">Copy to Clipboard</button>
+        </div>
+    </div>
+
+    <div id="plant-image-lightbox" class="modal lightbox" style="display: none;">
+        <div class="lightbox-content">
+            <span class="close-button" id="close-lightbox-modal">×</span>
+            <h3 id="lightbox-plant-name">Plant Name</h3>
+            <div id="lightbox-image-container">
+                <!-- Larger SVG/Canvas will be injected here -->
+            </div>
+            <div class="lightbox-actions">
+                <button id="download-plant-image-btn">Download Image (PNG)</button>
+                <button id="download-plant-data-btn">Download Data (JSON)</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>A simple cannabis breeding simulator. Enjoy ChronoCrosser!</p>
+    </footer>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

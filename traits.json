@@ -1,0 +1,118 @@
+{
+  "numerical_traits": [
+    {
+      "id": "height", "name": "Plant Height", "unit": "cm",
+      "min": 50, "max": 200, "initial_min_factor": 0.4, "initial_max_factor": 0.8
+    },
+    {
+      "id": "width", "name": "Plant Width", "unit": "cm",
+      "min": 30, "max": 150, "initial_min_factor": 0.4, "initial_max_factor": 0.8
+    },
+    {
+      "id": "thc", "name": "THC Content", "unit": "%",
+      "min": 0, "max": 35, "initial_min_factor": 0.1, "initial_max_factor": 0.6
+    },
+    {
+      "id": "cbd", "name": "CBD Content", "unit": "%",
+      "min": 0, "max": 25, "initial_min_factor": 0.1, "initial_max_factor": 0.7
+    },
+    {
+      "id": "genetic_yield_potential", "name": "Genetic Yield Potential", "unit": "factor",
+      "min": 0.5, "max": 1.5, "initial_min_factor": 0.7, "initial_max_factor": 1.2
+    }
+  ],
+  "categorical_traits": [
+    {
+      "id": "primaryColor", "name": "Primary Plant Color",
+      "values": ["Green", "LightGreen", "DarkGreen", "Purple", "PinkishPurple", "YellowGreen"]
+    },
+    {
+      "id": "accentColor", "name": "Pistil/Accent Color",
+      "values": ["Orange", "White", "Red", "Pink", "Yellow", "LightPurple", "DeepOrange"]
+    },
+    {
+      "id": "primaryTerpene", "name": "Primary Terpene",
+      "values": ["Myrcene", "Limonene", "Caryophyllene", "Linalool", "Pinene", "Humulene", "Terpinolene", "Ocimene"]
+    },
+    {
+      "id": "secondaryTerpene", "name": "Secondary Terpene",
+      "values": ["Myrcene", "Limonene", "Caryophyllene", "Linalool", "Pinene", "Humulene", "Terpinolene", "Ocimene", null]
+    }
+  ],
+  "genetic_risk_traits": [
+    {
+      "id": "sex_stability_gene",
+      "name": "Sex Stability",
+      "alleles": { "stable": "S", "unstable": "u" },
+      "dominant_allele": "S",
+      "recessive_phenotype_text": "Unstable Sex (High Herm Risk)",
+      "carrier_phenotype_text": "Carrier (Sex Instability)",
+      "homozygous_dominant_phenotype_text": "Stable Sex Expression",
+      "mutation_to_recessive_chance": 0.01,
+      "initial_recessive_allele_chance": 0.20
+    },
+    {
+      "id": "pest_susceptibility_gene",
+      "name": "Pest Susceptibility Gene",
+      "alleles": { "resistant": "R", "susceptible": "s" },
+      "dominant_allele": "R",
+      "recessive_phenotype_text": "Highly Pest Susceptible!",
+      "carrier_phenotype_text": "Carrier (Pest Susc. Gene)",
+      "homozygous_dominant_phenotype_text": "Pest Resistant",
+      "mutation_to_recessive_chance": 0.02,
+      "initial_recessive_allele_chance": 0.20
+    }
+  ],
+  "genetic_base_traits": [
+    {
+      "id": "sex_chromosomes_gene",
+      "name": "Sex Chromosomes",
+      "alleles": { "female_determining": "X", "male_determining": "Y" },
+      "genotypes": {
+        "female": ["X", "X"],
+        "male": ["X", "Y"]
+      },
+      "female_gamete_options": ["X"],
+      "male_gamete_options": ["X", "Y"],
+      "initial_male_chance": 0.5
+    }
+  ],
+  "allelic_phenotype_traits": [
+    {
+      "id": "leaf_edge_gene",
+      "name": "Leaf Serration Gene",
+      "alleles": { "serrated": "S", "smooth": "s" },
+      "dominant_allele": "S",
+      "phenotypes": {
+        "dominant_expressed": "Serrated Leaves",
+        "recessive_expressed": "Smooth Leaf Edges"
+      },
+      "mutation_chance": 0.005, 
+      "initial_recessive_allele_chance": 0.25
+    },
+    {
+      "id": "s420_factor_gene",
+      "name": "S-420 Factor",
+      "alleles": { "present": "S4P", "absent": "s4a" },
+      "dominant_allele": "S4P",
+      "phenotypes": {
+        "dominant_expressed": "S-420 Factor Active",
+        "recessive_expressed": "S-420 Factor Dormant"
+      },
+      "effects_on_traits": { 
+          "if_dominant_expressed": { "thc_multiplier": 1.05 } 
+      },
+      "mutation_chance": 0.002,
+      "initial_recessive_allele_chance": 0.10
+    }
+  ],
+  "constants": {
+    "YIELD_BASE_GRAMS_PER_M2_AT_FULL_POTENTIAL": 600,
+    "NUMERICAL_MUTATION_FACTOR": 0.10,
+    "CATEGORICAL_MUTATION_CHANCE": 0.05,
+    "LINEAGE_TOOLTIP_DEPTH": 3,
+    "MAX_INVENTORY_SIZE": 20,
+    "INITIAL_PLANT_COUNT": 6, 
+    "ENABLE_SPARKLES": true 
+  }
+}
