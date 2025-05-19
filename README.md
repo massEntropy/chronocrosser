@@ -126,28 +126,39 @@ The goal is to explore genetic possibilities, cultivate unique strains with inte
 
 ---
 
-## File Structure
-/chronocrosser/
-├── index.html # Main HTML file for the game interface
-├── style.css # All CSS styles for presentation
-├── traits.json # Configurable JSON definitions for all plant traits, names, and game constants
-├── images/ # Folder for static images (logo, favicons)
-│ ├── logo.png
-│ └── (favicons...)
-├── js/ # Folder for JavaScript modules
-│ ├── main.js # Main game logic, initialization, event orchestration
-│ ├── uiManager.js # Handles DOM manipulation, card rendering, UI updates
-│ ├── plantFactory.js # Responsible for creating new plant objects
-│ ├── plantGenetics.js # Core logic for gene inheritance and trait determination
-│ ├── plantVisuals.js # Generates SVG plant silhouettes
-│ ├── strainNamer.js # Procedural generation of strain names
-│ ├── lineageTracker.js # Logic for the lineage tooltip
-│ ├── logger.js # Centralized logging module
-│ └── utils.js # General utility functions
-├── README.md # This file
-└── LICENSE # MIT License file (You need to create this)
-
 ---
+
+## File Structure
+
+The project is organized as follows:
+
+```text
+chronocrosser/
+├── images/
+│   ├── logo.png
+│   ├── favicon.ico
+│   ├── favicon-16x16.png
+│   ├── favicon-32x32.png
+│   ├── android-chrome-192x192.png
+│   ├── android-chrome-512x512.png
+│   └── apple-touch-icon.png
+├── js/
+│   ├── config.js           # Static configuration like name parts for strain namer
+│   ├── lineageTracker.js   # Logic for the lineage tooltip display
+│   ├── logger.js           # Centralized logging module
+│   ├── main.js             # Main game logic, initialization, event orchestration
+│   ├── plantFactory.js     # Responsible for creating new plant objects
+│   ├── plantGenetics.js    # Core logic for gene inheritance and trait determination
+│   ├── plantVisuals.js     # Generates SVG plant silhouettes
+│   ├── strainNamer.js      # Procedural generation of strain names
+│   ├── uiManager.js        # Handles DOM manipulation, card rendering, UI updates
+│   └── utils.js            # General utility functions
+├── index.html              # Main HTML file for the game interface
+├── style.css               # All CSS styles for presentation
+├── traits.json             # Configurable JSON definitions for plant traits, names, and game constants
+├── LICENSE                 # MIT License file
+└── README.md               # This documentation file
+
 
 ## Future Development Ideas
 
