@@ -111,7 +111,7 @@ function initializeGame() {
     logger.info('main.js', `initializeGame() - Final inventory count: ${inventory.length}`);
     logger.verbose('main.js', "Inventory content IDs:", inventory.map(p => p.id));
     
-    refreshAllDisplays();
+    refreshAllDisplays(); 
     
     logger.info('main.js', "initializeGame() completed.");
     if(breedButtonElement) breedButtonElement.disabled = true;
@@ -132,7 +132,7 @@ function handleBreederAction(plant, action, slotType = null) {
     if (action === 'add') {
         if ((selectedParent1 && selectedParent1.id === plant.id) || (selectedParent2 && selectedParent2.id === plant.id)) {
             logger.warn('main.js', `Plant ${plant.name} is already selected in a breeder slot.`);
-            // alert(`${plant.name} is already selected.`); // Button should be disabled by UI
+            // alert(`${plant.name} is already selected.`); // UI should prevent this via disabled button
             return;
         }
         if (!selectedParent1) {
@@ -142,8 +142,8 @@ function handleBreederAction(plant, action, slotType = null) {
             selectedParent2 = plant;
             logger.info('main.js', `Added ${plant.name} to Parent Slot 2.`);
         } else {
-            logger.warn('main.js', "Both breeder slots are full when trying to add. Action should be prevented by UI button state.");
-            // alert("Both breeder slots are full. Remove a plant first to add another."); // Button should be disabled by UI
+            logger.warn('main.js', "Both breeder slots are full when trying to add. UI should prevent this.");
+            // alert("Both breeder slots are full. Remove a plant first to add another.");
             return; 
         }
     } else if (action === 'remove') {
@@ -166,8 +166,10 @@ function handleBreederAction(plant, action, slotType = null) {
         }
     }
 
+    // Update UI for breeding slots
     displayPlantInSlot(selectedParent1, parent1SlotElement, TRAIT_DEFINITIONS, allPlantsMap, handleBreederAction);
     displayPlantInSlot(selectedParent2, parent2SlotElement, TRAIT_DEFINITIONS, allPlantsMap, handleBreederAction);
+    // Refresh entire inventory display to update button states on nursery cards
     refreshAllDisplays(); 
     if(breedButtonElement) breedButtonElement.disabled = !(selectedParent1 && selectedParent2);
 }
@@ -189,39 +191,36 @@ function handleDeletePlant(plantIdToDelete) {
         changedSlots = true;
     }
     refreshAllDisplays(); 
-    if(breedButtonElement && changedSlots) { 
+    // Ensure breed button state is accurate after potential parent removal
+    if(breedButtonElement) { 
         breedButtonElement.disabled = !(selectedParent1 && selectedParent2);
-    } else if (breedButtonElement && !(selectedParent1 && selectedParent2)) { // Ensure disabled if slots not full
-        breedButtonElement.disabled = true;
     }
 }
 
 function breedSelectedPlants() { 
     logger.info('main.js', "breedSelectedPlants() called.");
     if (!selectedParent1 || !selectedParent2) {
-        logger.warn('main.js', "Breeding attempted without two parents selected (breedSelectedPlants).");
+        logger.warn('main.js', "Breeding attempted without two valid parents selected (breedSelectedPlants).");
         return;
     }
     
-    let femaleParent, maleParent;
-    // Ensure expressedSex property exists before comparing
     const p1Sex = selectedParent1.expressedSex;
     const p2Sex = selectedParent2.expressedSex;
 
+    let femaleParent, maleParent;
     if (p1Sex === 'Female' && p2Sex === 'Male') { 
         femaleParent = selectedParent1; maleParent = selectedParent2; 
     } else if (p1Sex === 'Male' && p2Sex === 'Female') { 
         femaleParent = selectedParent2; maleParent = selectedParent1; 
     } else { 
         let alertMsg = `Breeding failed: Invalid parent sex combination. Please select one male (♂) and one female (♀) plant.`;
-        if (p1Sex && p1Sex === p2Sex) { // Check if expressedSex is defined before comparing
+        if (p1Sex && p1Sex === p2Sex) {
             alertMsg = `Breeding failed: Cannot breed two ${p1Sex} plants. Select one male (♂) and one female (♀).`;
         }
         
         logger.warn('main.js', `Invalid breeding attempt: P1 (${selectedParent1.name}, ${p1Sex}), P2 (${selectedParent2.name}, ${p2Sex}). Message: ${alertMsg}`);
         alert(alertMsg); 
 
-        // Clear breeder slots on invalid attempt
         selectedParent1 = null;
         selectedParent2 = null;
         displayPlantInSlot(null, parent1SlotElement, TRAIT_DEFINITIONS, allPlantsMap, handleBreederAction);
@@ -283,7 +282,7 @@ function refreshAllDisplays() {
         logger.error('main.js', "Cannot refresh displays - essential elements or data missing in refreshAllDisplays."); 
         return; 
     }
-    logger.verbose('main.js', `Calling updateInventoryDisplay. Inventory count: ${inventory ? inventory.length : 'null'}. P1: ${selectedParent1 ? 'Set' : 'null'}, P2: ${selectedParent2 ? 'Set' : 'null'}`);
+    logger.verbose('main.js', `Calling updateInventoryDisplay. Inventory count: ${inventory ? inventory.length : 'null'}. P1: ${selectedParent1 ? selectedParent1.name : 'null'}, P2: ${selectedParent2 ? selectedParent2.name : 'null'}`);
     
     updateInventoryDisplay(
         inventory, 
@@ -347,7 +346,8 @@ function handleImportStrain() {
             if (importedData.hasOwnProperty(td.id) && typeof importedData[td.id] === 'number' && gameUtils.clamp) {
                 newPlant[td.id] = gameUtils.clamp(importedData[td.id], td.min, td.max);
             } else if (!newPlant.hasOwnProperty(td.id) && gameUtils.getRandomElement && td.min !== undefined && td.max !== undefined) { 
-                newPlant[td.id] = gameUtils.getRandomElement([td.min, (td.min + td.max) / 2, td.max].filter(v => !isNaN(v))); 
+                const fallbacks = [td.min, (td.min + td.max) / 2, td.max].filter(v => !isNaN(v));
+                newPlant[td.id] = fallbacks.length > 0 ? gameUtils.getRandomElement(fallbacks) : 0; 
             }
         });
         TRAIT_DEFINITIONS.categorical_traits.forEach(td => {
@@ -364,13 +364,13 @@ function handleImportStrain() {
             }
         });
         if (newPlant.primaryTerpene === newPlant.secondaryTerpene && newPlant.secondaryTerpene !== null && gameUtils.getRandomElement) {
-            const secondaryTerpValues = TRAIT_DEFINITIONS.categorical_traits.find(t => t.id === 'secondaryTerpene').values;
-            newPlant.secondaryTerpene = gameUtils.getRandomElement(secondaryTerpValues.filter(v => v !== newPlant.primaryTerpene && v !== null)) || null;
+            const secondaryTerpDef = TRAIT_DEFINITIONS.categorical_traits.find(t => t.id === 'secondaryTerpene');
+            if(secondaryTerpDef) newPlant.secondaryTerpene = gameUtils.getRandomElement(secondaryTerpDef.values.filter(v => v !== newPlant.primaryTerpene && v !== null)) || null;
         }
 
         const heightTrait = TRAIT_DEFINITIONS.numerical_traits.find(t => t.id === 'height');
         const widthTrait = TRAIT_DEFINITIONS.numerical_traits.find(t => t.id === 'width');
-        if (heightTrait && widthTrait && TRAIT_DEFINITIONS.constants) { // Ensure these are defined
+        if (heightTrait && widthTrait && TRAIT_DEFINITIONS.constants) { 
             newPlant.calculatedYieldGrams = (newPlant.height / (heightTrait.unit === 'cm' ? 100 : 1)) * 
                                           (newPlant.width / (widthTrait.unit === 'cm' ? 100 : 1)) * 
                                           newPlant.genetic_yield_potential * 
@@ -448,7 +448,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeUIManager(
         lineageTooltipElementGlobal, 
         exportModalGlobal, exportedStrainDataTextareaGlobal, closeExportModalButtonGlobal, copyExportedDataButtonGlobal,
-        // No onPlantDropCallback for click-to-assign
+        // No onPlantDropCallback as D&D is removed
         plantImageLightboxGlobal, lightboxPlantNameGlobal, lightboxImageContainerGlobal, 
         closeLightboxModalGlobal, 
         downloadPlantImageBtnGlobal, downloadPlantDataBtnGlobal
@@ -480,6 +480,5 @@ document.addEventListener('DOMContentLoaded', async () => {
         logger.info('main.js', "Game initialized and event listeners attached.");
     } catch (error) {
         logger.error('main.js', "CRITICAL Initialization failed in DOMContentLoaded:", error);
-        // Alert for loadTraits failure is handled within loadTraits itself.
     }
 });
