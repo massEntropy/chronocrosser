@@ -1,420 +1,568 @@
-// js/uiManager.js
-import { generateSilhouetteSVG } from './plantVisuals.js';
-import { getLineageTextRecursive, positionLineageTooltip } from './lineageTracker.js';
-import * as logger from './logger.js';
+/* ==========================================================================
+   1. CSS Custom Properties (Variables) - NEON THEME
+   ========================================================================== */
+:root {
+    --font-primary: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-monospace: 'Consolas', 'Monaco', monospace;
+    --font-logo-subtitle: 'Orbitron', sans-serif;
 
-let lineageTooltipElement;
-let exportModalElement, exportedStrainDataTextarea, closeExportModalButton, copyExportedDataButtonElement;
-let plantImageLightboxElement, lightboxPlantNameElement, lightboxImageContainerElement,
-    closeLightboxModalButtonElement, downloadPlantImageBtnElement, downloadPlantDataBtnElement;
+    --color-neon-cyan: #33f7f7;
+    --color-neon-magenta: #f0f;
+    --color-neon-lime: #9FFF77;
+    --color-neon-purple: #7b03fc;
+    --color-deep-purple: #4f0291; 
+    --color-dark-background: #000000; 
+    --color-content-background: #1a1a1a; 
+    --color-card-background: #222222; 
+    --color-card-header-bg: #2c2c2c; 
+    --color-card-border: var(--color-neon-cyan);
 
-let currentPlantForLightbox = null;
+    --color-text-primary-glow: var(--color-neon-magenta);
+    --color-text-secondary-glow: var(--color-neon-cyan);
+    --color-text-default: #e0e0e0; 
+    --color-text-headings: var(--color-neon-lime);
+    --color-text-placeholder: #888;
+    --color-text-white: #fff; 
+    --color-text-negative: #ff4f4f; 
+    --color-text-carrier: #ff9a3d; 
 
-export function initializeUIManager(
-    tooltipEl, 
-    exportModalEl, modalTextareaEl, modalCloseBtnEl, modalCopyBtnEl, 
-    // onPlantDropCallback, // D&D callback removed as D&D logic is removed
-    imgLightboxEl, lightboxNameEl, lightboxImgContainerEl, lightboxCloseBtnEl, downloadImgBtnEl, downloadDataBtnEl
-) {
-    logger.info('uiManager', "initializeUIManager() called.");
-    lineageTooltipElement = tooltipEl; 
-    exportModalElement = exportModalEl; 
-    exportedStrainDataTextarea = modalTextareaEl; 
-    closeExportModalButton = modalCloseBtnEl; 
-    copyExportedDataButtonElement = modalCopyBtnEl;
+    --color-background-silhouette: #111; 
+    --color-background-lightbox-image: transparent; 
+    --color-background-tooltip: rgba(20, 20, 20, 0.95);
+    --color-border-tooltip: var(--color-neon-purple);
+    --color-text-tooltip: #ccc;
+    --color-text-tooltip-highlight: var(--color-neon-lime);
 
-    if (closeExportModalButton) {
-        closeExportModalButton.onclick = () => { 
-            logger.debug('uiManager', "Close export modal clicked.");
-            if (exportModalElement) exportModalElement.style.display = "none"; 
-        };
-    } else { logger.error('uiManager', "closeExportModalButton (for text export) not found during init."); }
-
-    if (exportModalElement) {
-        exportModalElement.onclick = (event) => { 
-            if (event.target === exportModalElement) {
-                logger.debug('uiManager', "Export modal backdrop clicked.");
-                exportModalElement.style.display = "none"; 
-            }
-        };
-    } else { logger.error('uiManager', "exportModalElement not found during init."); }
-
-    plantImageLightboxElement = imgLightboxEl;
-    lightboxPlantNameElement = lightboxNameEl;
-    lightboxImageContainerElement = lightboxImgContainerEl;
-    closeLightboxModalButtonElement = document.getElementById('close-lightbox-modal'); 
-    downloadPlantImageBtnElement = downloadImgBtnEl;
-    downloadPlantDataBtnElement = downloadDataBtnEl;
-
-    if (closeLightboxModalButtonElement) { 
-        closeLightboxModalButtonElement.onclick = () => {
-            logger.debug('uiManager', "Close lightbox modal clicked.");
-            if (plantImageLightboxElement) plantImageLightboxElement.style.display = "none";
-        };
-    } else { logger.error('uiManager', "closeLightboxModalButtonElement (for image lightbox) not found during init."); }
-
-    if (plantImageLightboxElement) {
-        plantImageLightboxElement.onclick = (event) => {
-            if (event.target === plantImageLightboxElement) {
-                logger.debug('uiManager', "Lightbox modal backdrop clicked.");
-                plantImageLightboxElement.style.display = "none";
-            }
-        };
-    } else { logger.error('uiManager', "plantImageLightboxElement not found during init."); }
+    --color-button-primary-bg: var(--color-neon-lime);
+    --color-button-primary-text: #000;
+    --color-button-primary-hover-bg: #beffac;
+    --color-button-delete-bg: #d32f2f;
+    --color-button-delete-hover-bg: #b71c1c;
+    --color-button-export-bg: var(--color-neon-purple);
+    --color-button-export-hover-bg: var(--color-deep-purple);
+    --color-button-import-bg: var(--color-neon-cyan);
+    --color-button-import-text: #000;
+    --color-button-import-hover-bg: #6fffff;
+    --color-button-breeder-add-disabled-bg: #555;
+    --color-button-breeder-add-disabled-text: #888;
 
 
-    if (downloadPlantImageBtnElement) {
-        downloadPlantImageBtnElement.onclick = handleDownloadPlantImage;
-    } else { logger.error('uiManager', "downloadPlantImageBtnElement not found during init."); }
+    --glow-text-magenta: 0 0 3px var(--color-text-white), 0 0 5px var(--color-neon-magenta), 0 0 10px var(--color-neon-magenta);
+    --glow-text-cyan: 0 0 3px var(--color-text-white), 0 0 5px var(--color-neon-cyan), 0 0 10px var(--color-neon-cyan);
+    --glow-text-lime: 0 0 3px var(--color-text-white),0 0 5px var(--color-neon-lime), 0 0 10px var(--color-neon-lime);
+    --glow-box-cyan: 0 0 5px var(--color-neon-cyan), 0 0 10px rgba(51, 247, 247, 0.3);
+    --glow-box-magenta: 0 0 5px var(--color-neon-magenta), 0 0 10px rgba(255, 0, 255, 0.3);
+    --glow-box-purple: 0 0 8px var(--color-neon-purple), 0 0 15px rgba(123, 3, 252, 0.4);
+    --glow-box-lime: 0 0 5px var(--color-neon-lime), 0 0 10px rgba(159, 255, 119, 0.3);
 
-    if (downloadPlantDataBtnElement) {
-        downloadPlantDataBtnElement.onclick = handleDownloadPlantData;
-    } else { logger.error('uiManager', "downloadPlantDataBtnElement not found during init."); }
+    --border-radius-small: 4px;
+    --border-radius-medium: 6px;
+    --border-radius-large: 8px;
 
-    logger.info('uiManager', "initializeUIManager() completed.");
+    --spacing-small: 5px;
+    --spacing-medium: 10px;
+    --spacing-large: 15px;
+    --spacing-xlarge: 20px;
 }
 
-function showLineageTooltip(plant, event, allPlantsMap, TRAIT_DEFINITIONS_PARAM) { // Use PARAM
-    if (!lineageTooltipElement || !plant || !TRAIT_DEFINITIONS_PARAM || !TRAIT_DEFINITIONS_PARAM.constants) {
-        logger.warn('uiManager', "Cannot show lineage tooltip, missing data.", {hasTooltipEl:!!lineageTooltipElement, hasPlant:!!plant, hasTD:!!TRAIT_DEFINITIONS_PARAM});
-        return;
-    }
-    const lineageText = getLineageTextRecursive( plant.id, allPlantsMap, TRAIT_DEFINITIONS_PARAM, 0, TRAIT_DEFINITIONS_PARAM.constants.LINEAGE_TOOLTIP_DEPTH );
-    lineageTooltipElement.innerHTML = lineageText;
-    lineageTooltipElement.style.display = 'block';
-    positionLineageTooltip(lineageTooltipElement, event);
+/* ==========================================================================
+   2. Global Styles & Resets
+   ========================================================================== */
+body {
+    font-family: var(--font-primary);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-dark-background);
+    color: var(--color-text-default);
 }
 
-function hideLineageTooltip() {
-    if (lineageTooltipElement) lineageTooltipElement.style.display = 'none';
+/* ==========================================================================
+   3. Layout Components (Header, Footer, Page Container)
+   ========================================================================== */
+header {
+    background: var(--color-dark-background);
+    color: var(--color-text-white);
+    padding: 0.5rem 0;
+    text-align: center;
+    border-bottom: 1px solid var(--color-deep-purple);
 }
 
-function openPlantImageLightbox(plant, TRAIT_DEFINITIONS_PARAM) { // Use PARAM
-    logger.debug('uiManager', `openPlantImageLightbox() for plant: ${plant ? plant.name : "NULL PLANT"}`);
-    if (!plant || !TRAIT_DEFINITIONS_PARAM) {
-        logger.error('uiManager', "Cannot open lightbox, plant or TRAIT_DEFINITIONS_PARAM missing.");
-        return;
-    }
-    currentPlantForLightbox = plant; 
-    if (lightboxPlantNameElement) lightboxPlantNameElement.textContent = plant.name;
-    else logger.error('uiManager', "lightboxPlantNameElement missing.");
-
-    if (lightboxImageContainerElement && TRAIT_DEFINITIONS_PARAM) { 
-        lightboxImageContainerElement.innerHTML = ''; 
-        const largeSVG = generateSilhouetteSVG(plant, TRAIT_DEFINITIONS_PARAM, { width: 500, height: 550, isLightbox: true }); 
-        if (largeSVG) {
-            lightboxImageContainerElement.appendChild(largeSVG);
-        } else {
-            logger.error('uiManager', `generateSilhouetteSVG returned null for lightbox for plant ${plant.name}.`);
-            lightboxImageContainerElement.textContent = "Error generating image.";
-        }
-    } else if (!TRAIT_DEFINITIONS_PARAM) {
-        logger.error('uiManager', "TRAIT_DEFINITIONS_PARAM not available for lightbox image generation.");
-    } else {
-         logger.error('uiManager', "lightboxImageContainerElement missing for lightbox.");
-    }
-    if (plantImageLightboxElement) plantImageLightboxElement.style.display = "flex";
-    else logger.error('uiManager', "plantImageLightboxElement missing for lightbox.");
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing-medium) 0;
 }
 
-async function handleDownloadPlantImage() { /* ... Same as previous full version, ensure it uses currentPlantForLightbox ... */ }
-function handleDownloadPlantData() { /* ... Same as previous full version, ensure it uses currentPlantForLightbox ... */ }
-export function showExportModal(strainDataString) { /* ... Same as previous full version ... */ }
-
-
-export function renderPlantCard(
-    plant, 
-    TRAIT_DEFINITIONS_PARAM, // Use PARAM
-    allPlantsMap, 
-    onDeleteCallback, 
-    onExportCallback, 
-    onBreederActionCallback,
-    isNurseryCard = true, 
-    breederSlotType = null,
-    currentSelectedP1 = null, 
-    currentSelectedP2 = null 
-) {
-    logger.debug('uiManager', `renderPlantCard START for: ${plant ? plant.name : "NULL PLANT"}, isNursery: ${isNurseryCard}`);
-    if (!plant || !TRAIT_DEFINITIONS_PARAM) {
-        logger.error('uiManager', `renderPlantCard() received null plant or missing TRAIT_DEFINITIONS_PARAM. Plant:`, plant, `TD_PARAM:`, TRAIT_DEFINITIONS_PARAM);
-        const errorCard = document.createElement('div');
-        errorCard.textContent = "Error rendering card data (missing plant/TD_PARAM)."; 
-        errorCard.style.cssText = "color:red; border:1px solid red; padding:10px; min-height:50px;";
-        return errorCard;
-    }
-    
-    const card = document.createElement('div'); 
-    card.className = 'plant-card'; card.dataset.plantId = plant.id;
-    
-    const header = document.createElement('div'); 
-    header.className = 'plant-card-header'; 
-    
-    const nameEl = document.createElement('h4'); 
-    let sexSymbol = '';
-    if (plant.expressedSex === 'Female') sexSymbol = ' ♀';
-    else if (plant.expressedSex === 'Male') sexSymbol = ' ♂';
-    else if (plant.expressedSex) sexSymbol = ` (${plant.expressedSex})`;
-    nameEl.textContent = `${plant.name || 'Unnamed Strain'} (G: ${plant.generation !== undefined ? plant.generation : 'N/A'})${sexSymbol}`; 
-    header.appendChild(nameEl);
-    
-    const breederActionButton = document.createElement('button');
-    breederActionButton.className = 'breeder-action-button';
-    if (isNurseryCard) {
-        breederActionButton.classList.add('add');
-        logger.verbose('uiManager', `Render nursery card ${plant.name}. Passed P1: ${currentSelectedP1 ? currentSelectedP1.name : 'null'}, Passed P2: ${currentSelectedP2 ? currentSelectedP2.name : 'null'}`);
-        const isAlreadySelectedP1 = plant === currentSelectedP1; 
-        const isAlreadySelectedP2 = plant === currentSelectedP2; 
-        const bothSlotsFull = !!currentSelectedP1 && !!currentSelectedP2;
-        logger.verbose('uiManager', `Button state for ${plant.name}: isAlreadyP1: ${isAlreadySelectedP1}, isAlreadyP2: ${isAlreadySelectedP2}, bothSlotsFull: ${bothSlotsFull}`);
-
-        if (isAlreadySelectedP1 || isAlreadySelectedP2) {
-            breederActionButton.textContent = "Selected";
-            breederActionButton.disabled = true;
-        } else if (bothSlotsFull) {
-            breederActionButton.textContent = "Slots Full";
-            breederActionButton.disabled = true;
-        } else {
-            breederActionButton.textContent = "+ Breeder";
-            breederActionButton.disabled = false;
-        }
-        
-        breederActionButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            logger.debug('uiManager', `'+ Breeder' button clicked for ${plant.name}. Disabled: ${breederActionButton.disabled}. Callback type: ${typeof onBreederActionCallback}`);
-            if (!breederActionButton.disabled && typeof onBreederActionCallback === 'function') {
-                onBreederActionCallback(plant, 'add', null); 
-            } else if (breederActionButton.disabled) {
-                logger.warn('uiManager', `'+ Breeder' button for ${plant.name} is disabled. State: isAlreadyP1: ${isAlreadySelectedP1}, isAlreadyP2: ${isAlreadySelectedP2}, bothSlotsFull: ${bothSlotsFull}`);
-            } else {
-                logger.error('uiManager', `onBreederActionCallback is not a function for ${plant.name}! Type: ${typeof onBreederActionCallback}`);
-            }
-        });
-    } else if (breederSlotType === 'parent1' || breederSlotType === 'parent2') { 
-        breederActionButton.classList.add('remove');
-        breederActionButton.textContent = "Remove"; 
-        breederActionButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            logger.debug('uiManager', `"Remove" button clicked for ${plant.name} from slot ${breederSlotType}. Callback type: ${typeof onBreederActionCallback}`);
-            if (typeof onBreederActionCallback === 'function') {
-                onBreederActionCallback(plant, 'remove', breederSlotType);
-            } else {
-                 logger.error('uiManager', `onBreederActionCallback is not a function for remove action! Type: ${typeof onBreederActionCallback}`);
-            }
-        });
-    } else { 
-        breederActionButton.style.display = 'none';
-    }
-    header.appendChild(breederActionButton);
-    card.appendChild(header);
-
-    const contentWrapper = document.createElement('div'); 
-    contentWrapper.className = 'plant-card-content-wrapper';
-    
-    const silhouetteContainer = document.createElement('div'); 
-    silhouetteContainer.className = 'plant-silhouette';
-    if (TRAIT_DEFINITIONS_PARAM && plant) { 
-        // logger.debug('uiManager', `Calling generateSilhouetteSVG for ${plant.name} (in renderPlantCard)`);
-        const smallSVG = generateSilhouetteSVG(plant, TRAIT_DEFINITIONS_PARAM, { width: 180, height: 150, isLightbox: false });
-        if (smallSVG && smallSVG.childNodes.length > 0 && !smallSVG.querySelector('text[fill="red"]')) {
-            silhouetteContainer.appendChild(smallSVG);
-            logger.verbose('uiManager', `SVG appended for ${plant.name}`);
-        } else {
-            logger.error('uiManager', `generateSilhouetteSVG returned empty or error SVG for ${plant.name} in card. SVG content:`, smallSVG ? smallSVG.outerHTML.substring(0,100) + "..." : "null");
-            silhouetteContainer.innerHTML = `<p style="color:orange; font-size:10px;">[Visual Error for ${plant.name}]</p>`; 
-        }
-    }
-    silhouetteContainer.addEventListener('click', (e) => { 
-        e.stopPropagation(); 
-        if(plant && TRAIT_DEFINITIONS_PARAM) openPlantImageLightbox(plant, TRAIT_DEFINITIONS_PARAM); 
-    });
-    contentWrapper.appendChild(silhouetteContainer);
-    logger.verbose('uiManager', `Silhouette added for ${plant.name}`);
-
-    function createCollapsibleSection(title, initiallyExpanded = false) {
-        const section = document.createElement('div'); section.className = 'plant-card-section';
-        const sectionTitleEl = document.createElement('div'); sectionTitleEl.className = 'plant-card-section-title';
-        sectionTitleEl.textContent = title;
-        const toggleIcon = document.createElement('span'); toggleIcon.className = 'plant-card-section-toggle';
-        toggleIcon.textContent = initiallyExpanded ? '▾' : '▸'; sectionTitleEl.appendChild(toggleIcon);
-        const sectionContent = document.createElement('div'); sectionContent.className = 'plant-card-section-content';
-        if (initiallyExpanded) sectionContent.classList.add('expanded');
-        sectionTitleEl.addEventListener('click', (e) => {
-            e.stopPropagation(); 
-            sectionContent.classList.toggle('expanded');
-            toggleIcon.textContent = sectionContent.classList.contains('expanded') ? '▾' : '▸';
-        });
-        section.appendChild(sectionTitleEl); section.appendChild(sectionContent);
-        return { section, sectionContent };
-    }
-
-    // --- Core Stats Section ---
-    if (TRAIT_DEFINITIONS_PARAM && TRAIT_DEFINITIONS_PARAM.numerical_traits) {
-        const { section, sectionContent } = createCollapsibleSection("Core Stats", true);
-        let itemsAddedToCoreStats = 0;
-        TRAIT_DEFINITIONS_PARAM.numerical_traits.forEach(td => {
-            const value = plant[td.id]; 
-            if (value === undefined) { logger.verbose('uiManager', `Core Stat - Trait: ${td.id} is undefined on plant ${plant.name}.`); return; }
-            let text = "";
-            if (td.id === "genetic_yield_potential") text = `<strong>Est. Yield:</strong> ${plant.calculatedYieldGrams !== undefined ? plant.calculatedYieldGrams : 'N/A'}g<br><strong>${td.name}:</strong> ${value.toFixed(2)} ${td.unit || ''}`;
-            else text = `<strong>${td.name}:</strong> ${value.toFixed(td.unit === '%' ? 2 : 1)} ${td.unit || ''}`;
-            const p = document.createElement('p'); p.innerHTML = text; sectionContent.appendChild(p);
-            itemsAddedToCoreStats++;
-        });
-        logger.verbose('uiManager', `Core Stats for ${plant.name}: ${itemsAddedToCoreStats} items populated.`);
-        if (sectionContent.hasChildNodes()) contentWrapper.appendChild(section); else { logger.verbose('uiManager', `Core Stats section empty for ${plant.name}, not adding.`); section.remove(); }
-    } else { logger.warn('uiManager', `Numerical traits definition missing for ${plant.name}`); }
-
-    // --- Aroma & Appearance Section ---
-    if (TRAIT_DEFINITIONS_PARAM && TRAIT_DEFINITIONS_PARAM.categorical_traits) {
-        const { section, sectionContent } = createCollapsibleSection("Aroma & Appearance");
-        let itemsAddedToAroma = 0;
-        TRAIT_DEFINITIONS_PARAM.categorical_traits.forEach(td => {
-            const value = plant[td.id];
-            if (value !== undefined && value !== null) {
-                const p = document.createElement('p'); p.innerHTML = `<strong>${td.name}:</strong> ${value}`; sectionContent.appendChild(p);
-                itemsAddedToAroma++;
-            }
-        });
-        logger.verbose('uiManager', `Aroma/Appearance for ${plant.name}: ${itemsAddedToAroma} items populated.`);
-        if (sectionContent.hasChildNodes()) contentWrapper.appendChild(section); else { logger.verbose('uiManager', `Aroma section empty for ${plant.name}, not adding.`); section.remove(); }
-    } else { logger.warn('uiManager', `Categorical traits definition missing for ${plant.name}`); }
-    
-    // --- Genetic Markers Section ---
-    const alleleTraitCategories = ['genetic_risk_traits', 'allelic_phenotype_traits'];
-    if (TRAIT_DEFINITIONS_PARAM) {
-        const { section, sectionContent } = createCollapsibleSection("Genetic Markers");
-        let itemsAddedToGenetic = 0;
-        alleleTraitCategories.forEach(category => {
-            if (TRAIT_DEFINITIONS_PARAM[category]) {
-                TRAIT_DEFINITIONS_PARAM[category].forEach(traitDef => {
-                    const alleles = plant.genome ? plant.genome[traitDef.id] : undefined; 
-                    if (!alleles || alleles.length !== 2) { return; }
-                    let recessiveAlleleSymbol = "", dominantAlleleSymbol = traitDef.dominant_allele;
-                    if (traitDef.alleles) { for (const key in traitDef.alleles) if (traitDef.alleles[key] !== dominantAlleleSymbol) { recessiveAlleleSymbol = traitDef.alleles[key]; break; } if (!recessiveAlleleSymbol) { const alleleValues = Object.values(traitDef.alleles); recessiveAlleleSymbol = alleleValues.find(val => val !== dominantAlleleSymbol) || alleleValues[alleleValues.length -1];} } 
-                    else { logger.warn('uiManager', `Missing 'alleles' definition for genetic marker ${traitDef.id}.`); return; }
-                    if (!recessiveAlleleSymbol) { logger.warn('uiManager', `Could not determine recessive allele for ${traitDef.id}.`); recessiveAlleleSymbol = dominantAlleleSymbol; }
-
-                    let phenotypeText = "", phenotypeClass = "";
-                    const isHomozygousRecessive = alleles[0] === recessiveAlleleSymbol && alleles[1] === recessiveAlleleSymbol;
-                    const isHeterozygous = (alleles[0] === recessiveAlleleSymbol && alleles[1] === dominantAlleleSymbol) || (alleles[0] === dominantAlleleSymbol && alleles[1] === recessiveAlleleSymbol);
-                    if (isHomozygousRecessive) { phenotypeText = (traitDef.phenotypes && traitDef.phenotypes.recessive_expressed) || traitDef.recessive_phenotype_text || "Recessive Trait"; if (category === 'genetic_risk_traits') phenotypeClass = "negative-trait"; }
-                    else if (isHeterozygous) { phenotypeText = traitDef.carrier_phenotype_text || ((traitDef.phenotypes && traitDef.phenotypes.dominant_expressed) ? `Carrier (Expresses: ${traitDef.phenotypes.dominant_expressed})` : "Carrier"); if (category === 'genetic_risk_traits') phenotypeClass = "carrier-trait"; else phenotypeText = (traitDef.phenotypes && traitDef.phenotypes.dominant_expressed) || "Dominant Trait (Carrier)"; }
-                    else { phenotypeText = (traitDef.phenotypes && traitDef.phenotypes.dominant_expressed) || traitDef.homozygous_dominant_phenotype_text || "Dominant Trait"; }
-                    if (phenotypeText) { const p = document.createElement('p'); p.textContent = phenotypeText; if (phenotypeClass) p.classList.add(phenotypeClass); sectionContent.appendChild(p); itemsAddedToGenetic++; }
-                });
-            }
-        });
-        logger.verbose('uiManager', `Genetic Markers for ${plant.name}: ${itemsAddedToGenetic} items populated.`);
-        if (sectionContent.hasChildNodes()) contentWrapper.appendChild(section); else { logger.verbose('uiManager', `Genetic Markers section empty for ${plant.name}, not adding.`); section.remove(); }
-    } else { logger.warn('uiManager', `TRAIT_DEFINITIONS_PARAM missing for Genetic Markers on ${plant.name}.`); }
-    
-    card.appendChild(contentWrapper);
-    logger.verbose('uiManager', `Content wrapper added for ${plant.name}`);
-
-    const actionsContainer = document.createElement('div'); 
-    actionsContainer.className = 'plant-card-actions';
-    const deleteButton = document.createElement('button'); 
-    deleteButton.textContent = 'Delete'; deleteButton.className = 'delete-plant-button';
-    deleteButton.addEventListener('click', (e) => { e.stopPropagation(); if (confirm(`Are you sure you want to delete ${plant.name || 'this plant'}?`)) onDeleteCallback(plant.id); });
-    actionsContainer.appendChild(deleteButton);
-    const exportButton = document.createElement('button'); 
-    exportButton.textContent = 'Export'; exportButton.className = 'export-plant-button';
-    exportButton.addEventListener('click', (e) => { e.stopPropagation(); onExportCallback(plant); });
-    actionsContainer.appendChild(exportButton);
-    if (actionsContainer.hasChildNodes()) card.appendChild(actionsContainer); 
-    else { logger.warn('uiManager', `Actions container for ${plant.name} has no buttons, not adding.`); }
-    logger.verbose('uiManager', `Actions container added for ${plant.name}`);
-    
-    header.addEventListener('mouseenter', (event) => showLineageTooltip(plant, event, allPlantsMap, TRAIT_DEFINITIONS_PARAM));
-    header.addEventListener('mouseleave', hideLineageTooltip);
-    
-    logger.debug('uiManager', `renderPlantCard FINISHED for: ${plant.name}. Final card children count: ${card.children.length}`);
-    return card;
+#game-logo {
+    max-width: 90%;
+    height: auto;
+    max-height: 100px;
 }
 
-export function updateInventoryDisplay(
-    inventory, inventoryDisplayElement, TRAIT_DEFINITIONS_PARAM, allPlantsMap, 
-    onDeletePlant, onExportPlant, onBreederActionCallback,
-    currentSelectedP1, currentSelectedP2
-) {
-    logger.info('uiManager', `updateInventoryDisplay() called. Inventory count: ${inventory ? inventory.length : "null/undefined"}`);
-    if (!inventoryDisplayElement) { logger.error('uiManager', "inventoryDisplayElement is null in updateInventoryDisplay"); return; }
-    inventoryDisplayElement.innerHTML = ''; 
-    if (!inventory || inventory.length === 0) {
-        logger.info('uiManager', "Inventory is empty or null, nothing to display in nursery.");
-        inventoryDisplayElement.innerHTML = '<p style="color: #888; text-align: center; width:100%;">Nursery is empty. Try breeding or importing strains!</p>';
-        return;
-    }
-    if (!TRAIT_DEFINITIONS_PARAM) { 
-        logger.error('uiManager', "TRAIT_DEFINITIONS_PARAM is null/undefined in updateInventoryDisplay. Cannot render cards."); 
-        console.trace(); // Add stack trace for this specific error
-        return; 
-    }
-
-    inventory.forEach((plant, index) => {
-        if (!plant) { logger.error('uiManager', `Plant at inventory index ${index} is null/undefined.`); return; }
-        const plantCardElement = renderPlantCard(
-            plant, TRAIT_DEFINITIONS_PARAM, allPlantsMap, 
-            onDeletePlant, onExportPlant, 
-            onBreederActionCallback, 
-            true, null, 
-            currentSelectedP1, currentSelectedP2
-        );
-        if (plantCardElement) inventoryDisplayElement.appendChild(plantCardElement);
-        else logger.error('uiManager', `renderPlantCard returned null for plant: ${plant.name}`);
-    });
-    logger.debug('uiManager', `updateInventoryDisplay() finished. Children in inventoryDisplayElement: ${inventoryDisplayElement.children.length}`);
+.page-container {
+    display: flex;
+    flex-direction: row; 
+    margin: 0 auto;
+    max-width: 1800px; 
+    padding: var(--spacing-xlarge); 
+    gap: var(--spacing-xlarge);
 }
 
-export function displayPlantInSlot(plant, slotElement, TRAIT_DEFINITIONS_PARAM, allPlantsMap, onBreederActionCallback) {
-    logger.debug('uiManager', `displayPlantInSlot() for slot: ${slotElement ? slotElement.id : "NULL SLOT"}, Plant: ${plant ? plant.name : "NO PLANT"}`);
-    if (!slotElement) { logger.error('uiManager', "slotElement is null in displayPlantInSlot"); return; }
-    const placeholder = slotElement.querySelector('.plant-card-placeholder');
-    const existingCard = slotElement.querySelector('.plant-card');
-    if (existingCard) existingCard.remove();
+#side-panel {
+    width: 340px; 
+    min-width: 320px; 
+    flex-shrink: 0; 
+    background-color: var(--color-content-background); 
+    padding: var(--spacing-large);
+    border-radius: var(--border-radius-large);
+    border: 1px solid var(--color-deep-purple);
+    box-shadow: var(--glow-box-purple);
+    height: fit-content; 
+    position: sticky; 
+    top: var(--spacing-xlarge); 
+    max-height: calc(100vh - (2 * var(--spacing-xlarge)) - 70px); 
+    overflow-y: auto; 
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xlarge); 
+}
 
-    if (plant && TRAIT_DEFINITIONS_PARAM) { 
-        if (placeholder) placeholder.style.display = 'none';
-        const parentSlotType = slotElement.id === 'parent1-slot' ? 'parent1' : (slotElement.id === 'parent2-slot' ? 'parent2' : 'offspring');
-        const card = renderPlantCard(
-            plant, TRAIT_DEFINITIONS_PARAM, allPlantsMap, 
-            null, null, null, 
-            onBreederActionCallback, 
-            false, parentSlotType,
-            null, null 
-        ); 
-        if (card) slotElement.appendChild(card);
-        else logger.error('uiManager', `renderPlantCard returned null for slot display for plant: ${plant.name}`);
-    } else {
-        if (placeholder) {
-            placeholder.style.display = 'flex';
-        } else if (slotElement.id !== 'offspring-display' && !slotElement.querySelector('.plant-card-placeholder')) { 
-            const newPlaceholder = document.createElement('div');
-            newPlaceholder.className = 'plant-card-placeholder';
-            newPlaceholder.textContent = slotElement.id === 'parent1-slot' ? 'Click "+ Breeder" on Plant' : 'Click "+ Breeder" on Plant';
-            slotElement.appendChild(newPlaceholder);
-            logger.debug('uiManager', `Added new placeholder to slot ${slotElement.id}`);
-        }
+.side-panel-section {
+    border-bottom: 1px dashed var(--color-deep-purple);
+    padding-bottom: var(--spacing-large);
+}
+.side-panel-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+#main-content {
+    flex-grow: 1; 
+}
+
+footer {
+    text-align: center;
+    margin-top: var(--spacing-xlarge);
+    padding: var(--spacing-large);
+    background: var(--color-dark-background); 
+    font-size: 0.9em;
+    color: #aaa;
+    border-top: 1px solid var(--color-deep-purple);
+}
+
+/* ==========================================================================
+   4. Typography
+   ========================================================================== */
+h2, h3, h4 { 
+    color: var(--color-text-headings);
+    text-shadow: var(--glow-text-lime);
+    margin-bottom: var(--spacing-medium); 
+}
+#side-panel h2, #side-panel h3, #side-panel h4 {
+    margin-top: 0; 
+}
+#side-panel h3 { font-size: 1.15em; } 
+#side-panel .parent-slot h3 { font-size: 1.0em; text-align: center; } 
+#side-panel #offspring-display h4 { 
+    font-size: 1em; 
+    margin-bottom: var(--spacing-small); 
+    color: var(--color-neon-cyan); 
+    text-shadow: var(--glow-text-cyan);
+}
+#main-content #nursery h2 { 
+    margin-top: 0;
+}
+
+
+/* ==========================================================================
+   5. Plant Card Component (Collapsible, Click-to-Assign)
+   ========================================================================== */
+.plant-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-xlarge);
+}
+
+.plant-card {
+    background: var(--color-card-background);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--border-radius-large);
+    padding: 0; 
+    box-shadow: var(--glow-box-cyan);
+    transition: transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    color: var(--color-text-default);
+    overflow: hidden; 
+    cursor: default; 
+}
+
+#nursery .plant-card:hover:not(.selected-for-breeding) { /* Removed .dragging */
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 0 10px var(--color-neon-cyan), 0 0 20px rgba(51, 247, 247, 0.7);
+    border-color: var(--color-neon-magenta);
+}
+
+.plant-card.selected-for-breeding { 
+    border: 3px solid var(--color-neon-magenta);
+    background-color: #333; 
+    box-shadow: 0 0 15px var(--color-neon-magenta), 0 0 25px rgba(255, 0, 255, 0.7);
+}
+
+.plant-card-header {
+    padding: var(--spacing-medium) var(--spacing-large);
+    background-color: var(--color-card-header-bg);
+    /* cursor: default; /* Header is no longer the primary drag target */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--color-deep-purple); 
+}
+
+/* .plant-card-header.dragging-header, .plant-card.dragging are removed */
+
+.plant-card-header h4 {
+    margin: 0;
+    color: var(--color-neon-lime);
+    font-size: 1.1em; 
+    text-shadow: var(--glow-text-lime);
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+    margin-right: var(--spacing-small); 
+}
+
+/* Breeder Action Button in Card Header */
+.breeder-action-button {
+    padding: var(--spacing-small) var(--spacing-medium);
+    /* margin-left: var(--spacing-medium); /* Now handled by flex spacing or within actions */
+    border: none;
+    border-radius: var(--border-radius-small);
+    color: var(--color-button-primary-text);
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.85em; 
+    min-width: 90px; 
+    text-align: center;
+    flex-shrink: 0; 
+}
+
+.breeder-action-button.add {
+    background-color: var(--color-neon-lime);
+    box-shadow: 0 0 3px var(--color-neon-lime);
+}
+.breeder-action-button.add:hover:not(:disabled) {
+    background-color: var(--color-button-primary-hover-bg);
+}
+.breeder-action-button.add:disabled {
+    background-color: var(--color-button-breeder-add-disabled-bg);
+    color: var(--color-button-breeder-add-disabled-text);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.breeder-action-button.remove {
+    background-color: var(--color-button-delete-bg);
+    color: var(--color-text-white);
+    box-shadow: 0 0 3px var(--color-button-delete-bg);
+}
+.breeder-action-button.remove:hover {
+    background-color: var(--color-button-delete-hover-bg);
+}
+
+
+.plant-card-content-wrapper {
+    padding: 0 var(--spacing-large) var(--spacing-large);
+}
+
+.plant-silhouette { 
+    margin-top: var(--spacing-medium); 
+    margin-bottom: var(--spacing-medium);
+    cursor: pointer; 
+    transition: transform 0.2s ease-out;
+}
+.plant-silhouette:hover {
+    transform: scale(1.05);
+}
+.plant-silhouette svg {
+    width: 100%;
+    max-height: 150px;
+    border: 1px solid var(--color-deep-purple);
+    background-color: var(--color-background-silhouette); 
+    border-radius: var(--border-radius-small);
+}
+
+.plant-card-section {
+    margin-top: var(--spacing-medium);
+    border-top: 1px dashed rgba(123, 3, 252, 0.4);
+    padding-top: var(--spacing-medium);
+}
+.plant-card-content-wrapper > .plant-card-section:first-of-type { 
+    border-top: none;
+    margin-top: 0; 
+    padding-top: var(--spacing-small);
+}
+
+.plant-card-section-title {
+    font-weight: bold;
+    color: var(--color-neon-cyan);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-small) 0;
+    user-select: none; 
+}
+.plant-card-section-title:hover { color: var(--color-neon-magenta); }
+
+.plant-card-section-toggle {
+    font-size: 0.9em; 
+    margin-left: var(--spacing-small);
+    transition: transform 0.2s ease-in-out;
+    padding: 0 var(--spacing-small); 
+}
+
+.plant-card-section-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease-in-out, padding-top 0.35s ease-in-out, padding-bottom 0.35s ease-in-out;
+    padding-left: var(--spacing-medium); 
+    padding-top: 0; padding-bottom: 0;
+}
+.plant-card-section-content.expanded {
+    max-height: 500px; 
+    padding-top: var(--spacing-small);
+    padding-bottom: var(--spacing-small);
+}
+.plant-card-section-content p { margin: var(--spacing-small) 0; font-size: 0.9em; line-height: 1.4; }
+.plant-card p strong { color: var(--color-neon-lime); }
+.plant-card .negative-trait { color: var(--color-text-negative); font-weight: bold; font-style: italic; text-shadow: 0 0 5px var(--color-text-negative); }
+.plant-card .carrier-trait { color: var(--color-text-carrier); font-style: italic; text-shadow: 0 0 5px var(--color-text-carrier); }
+
+.plant-card-actions {
+    margin-top: var(--spacing-medium); /* Space above the action buttons block */
+    padding: var(--spacing-medium) 0 0; /* Top padding, no side padding as buttons are full width */
+    border-top: 1px solid var(--color-deep-purple);
+    display: flex; 
+    flex-direction: column; 
+    gap: var(--spacing-small); /* Reduced gap for tighter button stack */
+}
+/* Buttons within the .plant-card-actions take full width of this container */
+.plant-card-actions .breeder-action-button,
+.plant-card-actions .delete-plant-button,
+.plant-card-actions .export-plant-button {
+    margin-top: 0; 
+    width: 100%; 
+    box-sizing: border-box;
+    padding: 8px 10px; 
+    font-size: 0.85em; 
+}
+
+
+/* Clicks on card body (not header/buttons/section-titles) handled by JS if needed */
+.plant-card button, .plant-card .plant-card-section-title {
+    cursor: pointer;
+}
+
+
+/* ==========================================================================
+   6. Breeding Station in Side Panel
+   ========================================================================== */
+#breeding-station { margin-top: 0; padding: 0; border: none; box-shadow: none; }
+
+.breeder-slots {
+    display: flex;
+    flex-direction: row; 
+    justify-content: space-between; 
+    gap: var(--spacing-medium);
+    margin-bottom: var(--spacing-medium);
+}
+
+.parent-slot {
+    width: calc(50% - (var(--spacing-medium) / 2)); 
+    min-height: 200px; 
+    border: 2px dashed var(--color-neon-purple);
+    padding: var(--spacing-small);
+    border-radius: var(--border-radius-medium);
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    justify-content: flex-start; 
+}
+.parent-slot h3 { margin-bottom: var(--spacing-small); }
+
+.plant-card-placeholder {
+    text-align: center;
+    color: var(--color-text-placeholder);
+    padding: var(--spacing-xlarge);
+    font-style: italic;
+    flex-grow: 1; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9em;
+}
+
+/* Compact card styling for parent slots */
+.parent-slot .plant-card { 
+    width: 100%; 
+    height: 100%; 
+    box-shadow: none; 
+    border-color: var(--color-neon-magenta); 
+    padding: 0; 
+}
+.parent-slot .plant-card .plant-card-header { 
+    padding: var(--spacing-small) var(--spacing-medium); 
+}
+.parent-slot .plant-card .plant-card-header h4 { font-size: 0.9em; margin-right: var(--spacing-small); }
+.parent-slot .plant-card .breeder-action-button { /* Already in actions, but ensure it's styled if visible */
+    font-size: 0.8em; 
+    padding: 4px 8px; /* Smaller padding */
+}
+
+.parent-slot .plant-card .plant-card-content-wrapper { padding: 0 var(--spacing-medium) var(--spacing-medium); }
+.parent-slot .plant-card .plant-silhouette svg { max-height: 60px; margin-bottom: var(--spacing-small); background-color: var(--color-background-silhouette); }
+.parent-slot .plant-card .plant-silhouette { cursor: default; } 
+.parent-slot .plant-card .plant-silhouette:hover { transform: none; }
+.parent-slot .plant-card .plant-card-section { display: none; } 
+.parent-slot .plant-card .plant-card-actions { 
+    padding: var(--spacing-small) var(--spacing-medium); /* Reduced padding for actions in slot */
+}
+
+
+#offspring-display { margin-top: var(--spacing-medium); text-align: left; }
+#offspring-display .plant-card {
+    max-width: 100%; 
+    margin: var(--spacing-medium) 0 0 0; 
+    border-color: var(--color-neon-lime);
+    box-shadow: var(--glow-box-lime);
+    padding:0;
+}
+#offspring-display .plant-card .plant-card-header { padding: var(--spacing-small) var(--spacing-medium); }
+#offspring-display .plant-card .plant-card-header h4 { font-size: 0.9em; }
+#offspring-display .plant-card .breeder-action-button { display: none; } 
+#offspring-display .plant-card .plant-card-content-wrapper { padding: 0 var(--spacing-medium) var(--spacing-medium); }
+#offspring-display .plant-card .plant-silhouette svg { max-height: 70px; margin-bottom: var(--spacing-small); background-color: var(--color-background-silhouette); }
+#offspring-display .plant-card .plant-silhouette { cursor: default; }
+#offspring-display .plant-card .plant-silhouette:hover { transform: none; }
+#offspring-display .plant-card .plant-card-section { display: none; } 
+#offspring-display .plant-card .plant-card-actions { display: none; }
+
+
+/* ==========================================================================
+   7. Buttons (General and Specific - outside cards)
+   ========================================================================== */
+#breed-button {
+    display: block; width: 100%; margin: var(--spacing-medium) auto; padding: 10px 20px; 
+    background-color: var(--color-button-primary-bg); color: var(--color-button-primary-text);
+    border: none; border-radius: var(--border-radius-medium); font-size: 1.05em; font-weight: bold;
+    cursor: pointer; transition: background-color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 0 5px var(--color-button-primary-bg), 0 0 10px rgba(159, 255, 119, 0.5);
+}
+#breed-button:disabled { background-color: var(--color-button-breeder-add-disabled-bg); color: var(--color-button-breeder-add-disabled-text); cursor: not-allowed; box-shadow: none; }
+#breed-button:not(:disabled):hover { background-color: var(--color-button-primary-hover-bg); box-shadow: 0 0 8px var(--color-button-primary-hover-bg), 0 0 15px rgba(190, 255, 172, 0.7); }
+
+/* Card action buttons (Delete/Export) styles applied via .plant-card-actions button {} */
+.plant-card .delete-plant-button { background-color: var(--color-button-delete-bg); color: var(--color-text-white); }
+.plant-card .delete-plant-button:hover { background-color: var(--color-button-delete-hover-bg); }
+.plant-card .export-plant-button { background-color: var(--color-button-export-bg); color: var(--color-text-white); }
+.plant-card .export-plant-button:hover { background-color: var(--color-button-export-hover-bg); }
+
+
+/* ==========================================================================
+   8. Import/Export Station in Side Panel
+   ========================================================================== */
+#import-export-station { margin-top: 0; padding: 0; border: none; box-shadow: none; }
+#import-data-area { width: 100%; min-height: 80px; padding: var(--spacing-medium); border-radius: var(--border-radius-small); border: 1px solid var(--color-neon-purple); background-color: #111; color: var(--color-text-default); font-family: var(--font-monospace); box-sizing: border-box; margin-bottom: var(--spacing-medium); }
+#import-strain-button { background-color: var(--color-button-import-bg); color: var(--color-button-import-text); font-weight: bold; padding: 10px 20px; border: none; border-radius: var(--border-radius-medium); cursor: pointer; transition: background-color 0.3s, box-shadow 0.3s; box-shadow: 0 0 5px var(--color-neon-cyan), 0 0 10px rgba(51, 247, 247, 0.5); width: 100%; }
+#import-strain-button:hover { background-color: var(--color-button-import-hover-bg); box-shadow: 0 0 8px var(--color-neon-cyan), 0 0 15px rgba(51, 247, 247, 0.7); }
+.export-instructions p { font-style: italic; color: #aaa; font-size: 0.9em; }
+
+/* ==========================================================================
+   9. Lineage Tooltip & Modals (Export & Lightbox)
+   ========================================================================== */
+.lineage-tooltip { position: absolute; background-color: var(--color-background-tooltip); border: 1px solid var(--color-border-tooltip); padding: 12px; border-radius: var(--border-radius-medium); box-shadow: 0 0 10px var(--color-neon-purple), 0 0 15px rgba(123, 3, 252, 0.5); font-family: var(--font-monospace); font-size: 0.85em; line-height: 1.5; white-space: pre; z-index: 1000; max-width: 350px; max-height: 400px; overflow-y: auto; pointer-events: none; color: var(--color-text-tooltip); }
+.lineage-tooltip strong { color: var(--color-text-tooltip-highlight); font-weight: bold; text-shadow: 0 0 3px var(--color-text-tooltip-highlight); }
+.modal { position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; }
+.modal-content { background-color: var(--color-content-background); margin: auto; padding: var(--spacing-xlarge); border: 1px solid var(--color-neon-magenta); box-shadow: var(--glow-box-magenta); width: 80%; max-width: 500px; border-radius: var(--border-radius-large); position: relative; color: var(--color-text-default); }
+.modal-content h3 { color: var(--color-neon-magenta); text-shadow: var(--glow-text-magenta); margin-top: 0; }
+.close-button { color: #aaa; position: absolute; top: var(--spacing-medium); right: var(--spacing-xlarge); font-size: 28px; font-weight: bold; cursor: pointer; }
+.close-button:hover, .close-button:focus { color: var(--color-neon-magenta); text-decoration: none; }
+#exported-strain-data { width: 100%; min-height: 150px; padding: var(--spacing-medium); border-radius: var(--border-radius-small); border: 1px solid var(--color-neon-purple); background-color: #111; color: var(--color-text-default); font-family: var(--font-monospace); box-sizing: border-box; margin-bottom: var(--spacing-medium); resize: vertical; }
+#copy-exported-data-button { background-color: var(--color-neon-lime); color: #000; padding: 10px 15px; border: none; border-radius: var(--border-radius-medium); cursor: pointer; font-weight: bold; }
+#copy-exported-data-button:hover { background-color: #beffac; }
+.modal.lightbox { background-color: rgba(0,0,0,0.85); }
+.lightbox-content { border-color: var(--color-neon-lime); box-shadow: var(--glow-box-lime); max-width: 600px; text-align: center; }
+.lightbox-content h3 { color: var(--color-neon-lime); text-shadow: var(--glow-text-lime); margin-bottom: var(--spacing-medium); }
+#lightbox-image-container { width: 100%; max-height: 70vh; margin-bottom: var(--spacing-large); display: flex; justify-content: center; align-items: center; background-color: var(--color-background-lightbox-image); }
+#lightbox-image-container svg, #lightbox-image-container canvas, #lightbox-image-container img { max-width: 100%; max-height: 100%; object-fit: contain; border: 1px solid var(--color-deep-purple); border-radius: var(--border-radius-small); background-color: var(--color-background-silhouette); }
+.lightbox-actions { display: flex; justify-content: center; gap: var(--spacing-medium); margin-top: var(--spacing-medium); }
+.lightbox-actions button { padding: 10px 15px; border: none; border-radius: var(--border-radius-medium); cursor: pointer; font-weight: bold; transition: background-color 0.3s, box-shadow 0.3s; }
+#download-plant-image-btn { background-color: var(--color-button-primary-bg); color: var(--color-button-primary-text); box-shadow: 0 0 5px var(--color-button-primary-bg); }
+#download-plant-image-btn:hover { background-color: var(--color-button-primary-hover-bg); }
+#download-plant-data-btn { background-color: var(--color-neon-cyan); color: var(--color-button-import-text); box-shadow: 0 0 5px var(--color-neon-cyan); }
+#download-plant-data-btn:hover { background-color: var(--color-button-import-hover-bg); }
+
+
+/* ==========================================================================
+   10. Drag and Drop Styles (Mostly Removed/Obsolete)
+   ========================================================================== */
+/* These drag-over styles might still be useful if you have other D&D features, 
+   but are not used for plant-to-breeder assignment anymore. */
+.parent-slot.drag-over,
+#plant-inventory.drag-over { 
+    background-color: var(--color-deep-purple) !important; 
+    border-style: solid !important; 
+    border-color: var(--color-neon-lime) !important;
+    opacity: 0.8; 
+}
+
+/* ==========================================================================
+   11. Responsive Adjustments
+   ========================================================================== */
+@media (max-width: 900px) { 
+    .page-container {
+        flex-direction: column; 
+    }
+    #side-panel {
+        width: 100%; 
+        position: static; 
+        max-height: none; 
+        margin-bottom: var(--spacing-xlarge);
+        overflow-y: visible;
     }
 }
 
-export function updateNurseryHeader(inventoryLength, maxInventorySize) {
-    const nurseryHeader = document.querySelector('#nursery h2');
-    if (nurseryHeader && maxInventorySize !== undefined) {
-        nurseryHeader.textContent = `My Nursery (${inventoryLength}/${maxInventorySize})`;
+@media (max-width: 480px) { 
+    .breeder-slots {
+        flex-direction: column; 
+        gap: var(--spacing-large);
     }
-}
-
-export function highlightSelectedCards(selectedParent1, selectedParent2) {
-    logger.verbose('uiManager', "Highlighting selected cards.");
-    document.querySelectorAll('#plant-inventory .plant-card').forEach(card => {
-        card.classList.remove('selected-for-breeding');
-        const plantId = card.dataset.plantId;
-        if (selectedParent1 && plantId === selectedParent1.id) {
-            card.classList.add('selected-for-breeding');
-        }
-        if (selectedParent2 && plantId === selectedParent2.id) {
-            card.classList.add('selected-for-breeding'); 
-        }
-    });
+    .parent-slot {
+        width: 100%; 
+        min-height: 180px; 
+    }
+    .plant-card-header h4 {
+        font-size: 1em; 
+    }
+    #game-logo {
+        max-height: 80px;
+    }
+    /* Make breeder action buttons in card header take full width on small screens */
+    .plant-card-header .breeder-action-button {
+        width: 100%;
+        margin-left: 0; /* No left margin if it's full width below name */
+        margin-top: var(--spacing-small); /* Add some space below name */
+    }
+    .plant-card-header {
+        flex-direction: column; /* Stack name and button in header on small screens */
+        align-items: flex-start; /* Align items to start */
+    }
+     .plant-card-header h4 {
+        margin-right: 0; /* No right margin */
+        margin-bottom: var(--spacing-small); /* Space below name */
+    }
 }
