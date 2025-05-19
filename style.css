@@ -196,10 +196,10 @@ h2, h3, h4 {
     flex-direction: column;
     color: var(--color-text-default);
     overflow: hidden; 
-    cursor: default; /* Base cursor for the card */
+    cursor: default; 
 }
 
-#nursery .plant-card:hover:not(.selected-for-breeding) {
+#nursery .plant-card:hover:not(.selected-for-breeding) { /* Removed .dragging */
     transform: translateY(-5px) scale(1.02);
     box-shadow: 0 0 10px var(--color-neon-cyan), 0 0 20px rgba(51, 247, 247, 0.7);
     border-color: var(--color-neon-magenta);
@@ -214,14 +214,14 @@ h2, h3, h4 {
 .plant-card-header {
     padding: var(--spacing-medium) var(--spacing-large);
     background-color: var(--color-card-header-bg);
-    /* cursor: default; Clicks handled by buttons or specific areas */
+    /* cursor: default; /* Header is no longer the primary drag target */
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--color-deep-purple); 
 }
 
-/* Removed .dragging-header and .plant-card.dragging as D&D is removed */
+/* .plant-card-header.dragging-header, .plant-card.dragging are removed */
 
 .plant-card-header h4 {
     margin: 0;
@@ -232,22 +232,22 @@ h2, h3, h4 {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis; 
-    margin-right: var(--spacing-small); /* Space before button */
+    margin-right: var(--spacing-small); 
 }
 
 /* Breeder Action Button in Card Header */
 .breeder-action-button {
     padding: var(--spacing-small) var(--spacing-medium);
-    margin-left: var(--spacing-medium);
+    /* margin-left: var(--spacing-medium); /* Now handled by flex spacing or within actions */
     border: none;
     border-radius: var(--border-radius-small);
     color: var(--color-button-primary-text);
     font-weight: bold;
     cursor: pointer;
-    font-size: 0.85em;
-    min-width: 90px; /* Adjusted min-width */
+    font-size: 0.85em; 
+    min-width: 90px; 
     text-align: center;
-    flex-shrink: 0; /* Prevent button from shrinking */
+    flex-shrink: 0; 
 }
 
 .breeder-action-button.add {
@@ -343,20 +343,24 @@ h2, h3, h4 {
 .plant-card .carrier-trait { color: var(--color-text-carrier); font-style: italic; text-shadow: 0 0 5px var(--color-text-carrier); }
 
 .plant-card-actions {
-    margin-top: var(--spacing-medium);
-    padding: var(--spacing-medium) var(--spacing-large) var(--spacing-large); 
+    margin-top: var(--spacing-medium); /* Space above the action buttons block */
+    padding: var(--spacing-medium) 0 0; /* Top padding, no side padding as buttons are full width */
     border-top: 1px solid var(--color-deep-purple);
     display: flex; 
     flex-direction: column; 
-    gap: var(--spacing-medium); 
+    gap: var(--spacing-small); /* Reduced gap for tighter button stack */
 }
-.plant-card .delete-plant-button,
-.plant-card .export-plant-button {
+/* Buttons within the .plant-card-actions take full width of this container */
+.plant-card-actions .breeder-action-button,
+.plant-card-actions .delete-plant-button,
+.plant-card-actions .export-plant-button {
     margin-top: 0; 
     width: 100%; 
     box-sizing: border-box;
     padding: 8px 10px; 
+    font-size: 0.85em; 
 }
+
 
 /* Clicks on card body (not header/buttons/section-titles) handled by JS if needed */
 .plant-card button, .plant-card .plant-card-section-title {
@@ -402,6 +406,7 @@ h2, h3, h4 {
     font-size: 0.9em;
 }
 
+/* Compact card styling for parent slots */
 .parent-slot .plant-card { 
     width: 100%; 
     height: 100%; 
@@ -409,17 +414,24 @@ h2, h3, h4 {
     border-color: var(--color-neon-magenta); 
     padding: 0; 
 }
-.parent-slot .plant-card .plant-card-header { padding: var(--spacing-small) var(--spacing-medium); }
-.parent-slot .plant-card .plant-card-header h4 { font-size: 0.9em; }
-/* Remove breeder-action-button specific width for parent slot as it should fill */
-.parent-slot .plant-card .breeder-action-button { font-size: 0.8em; min-width: auto; }
+.parent-slot .plant-card .plant-card-header { 
+    padding: var(--spacing-small) var(--spacing-medium); 
+}
+.parent-slot .plant-card .plant-card-header h4 { font-size: 0.9em; margin-right: var(--spacing-small); }
+.parent-slot .plant-card .breeder-action-button { /* Already in actions, but ensure it's styled if visible */
+    font-size: 0.8em; 
+    padding: 4px 8px; /* Smaller padding */
+}
 
 .parent-slot .plant-card .plant-card-content-wrapper { padding: 0 var(--spacing-medium) var(--spacing-medium); }
 .parent-slot .plant-card .plant-silhouette svg { max-height: 60px; margin-bottom: var(--spacing-small); background-color: var(--color-background-silhouette); }
 .parent-slot .plant-card .plant-silhouette { cursor: default; } 
 .parent-slot .plant-card .plant-silhouette:hover { transform: none; }
 .parent-slot .plant-card .plant-card-section { display: none; } 
-.parent-slot .plant-card .plant-card-actions { display: none; }
+.parent-slot .plant-card .plant-card-actions { 
+    padding: var(--spacing-small) var(--spacing-medium); /* Reduced padding for actions in slot */
+}
+
 
 #offspring-display { margin-top: var(--spacing-medium); text-align: left; }
 #offspring-display .plant-card {
@@ -431,7 +443,7 @@ h2, h3, h4 {
 }
 #offspring-display .plant-card .plant-card-header { padding: var(--spacing-small) var(--spacing-medium); }
 #offspring-display .plant-card .plant-card-header h4 { font-size: 0.9em; }
-#offspring-display .plant-card .breeder-action-button { display: none; } /* No add/remove for offspring preview */
+#offspring-display .plant-card .breeder-action-button { display: none; } 
 #offspring-display .plant-card .plant-card-content-wrapper { padding: 0 var(--spacing-medium) var(--spacing-medium); }
 #offspring-display .plant-card .plant-silhouette svg { max-height: 70px; margin-bottom: var(--spacing-small); background-color: var(--color-background-silhouette); }
 #offspring-display .plant-card .plant-silhouette { cursor: default; }
@@ -453,28 +465,25 @@ h2, h3, h4 {
 #breed-button:disabled { background-color: var(--color-button-breeder-add-disabled-bg); color: var(--color-button-breeder-add-disabled-text); cursor: not-allowed; box-shadow: none; }
 #breed-button:not(:disabled):hover { background-color: var(--color-button-primary-hover-bg); box-shadow: 0 0 8px var(--color-button-primary-hover-bg), 0 0 15px rgba(190, 255, 172, 0.7); }
 
-/* Card action buttons (Delete/Export) already styled within .plant-card-actions */
-.plant-card .delete-plant-button { background-color: var(--color-button-delete-bg); }
+/* Card action buttons (Delete/Export) styles applied via .plant-card-actions button {} */
+.plant-card .delete-plant-button { background-color: var(--color-button-delete-bg); color: var(--color-text-white); }
 .plant-card .delete-plant-button:hover { background-color: var(--color-button-delete-hover-bg); }
-.plant-card .export-plant-button { background-color: var(--color-button-export-bg); }
+.plant-card .export-plant-button { background-color: var(--color-button-export-bg); color: var(--color-text-white); }
 .plant-card .export-plant-button:hover { background-color: var(--color-button-export-hover-bg); }
 
 
 /* ==========================================================================
    8. Import/Export Station in Side Panel
    ========================================================================== */
-/* ... (Import/Export station styles - same as previous full version) ... */
 #import-export-station { margin-top: 0; padding: 0; border: none; box-shadow: none; }
 #import-data-area { width: 100%; min-height: 80px; padding: var(--spacing-medium); border-radius: var(--border-radius-small); border: 1px solid var(--color-neon-purple); background-color: #111; color: var(--color-text-default); font-family: var(--font-monospace); box-sizing: border-box; margin-bottom: var(--spacing-medium); }
 #import-strain-button { background-color: var(--color-button-import-bg); color: var(--color-button-import-text); font-weight: bold; padding: 10px 20px; border: none; border-radius: var(--border-radius-medium); cursor: pointer; transition: background-color 0.3s, box-shadow 0.3s; box-shadow: 0 0 5px var(--color-neon-cyan), 0 0 10px rgba(51, 247, 247, 0.5); width: 100%; }
 #import-strain-button:hover { background-color: var(--color-button-import-hover-bg); box-shadow: 0 0 8px var(--color-neon-cyan), 0 0 15px rgba(51, 247, 247, 0.7); }
 .export-instructions p { font-style: italic; color: #aaa; font-size: 0.9em; }
 
-
 /* ==========================================================================
    9. Lineage Tooltip & Modals (Export & Lightbox)
    ========================================================================== */
-/* ... (Lineage tooltip, Modal, Lightbox styles - same as previous full version) ... */
 .lineage-tooltip { position: absolute; background-color: var(--color-background-tooltip); border: 1px solid var(--color-border-tooltip); padding: 12px; border-radius: var(--border-radius-medium); box-shadow: 0 0 10px var(--color-neon-purple), 0 0 15px rgba(123, 3, 252, 0.5); font-family: var(--font-monospace); font-size: 0.85em; line-height: 1.5; white-space: pre; z-index: 1000; max-width: 350px; max-height: 400px; overflow-y: auto; pointer-events: none; color: var(--color-text-tooltip); }
 .lineage-tooltip strong { color: var(--color-text-tooltip-highlight); font-weight: bold; text-shadow: 0 0 3px var(--color-text-tooltip-highlight); }
 .modal { position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; }
@@ -499,10 +508,10 @@ h2, h3, h4 {
 
 
 /* ==========================================================================
-   10. Drag and Drop Styles (Remove if D&D fully replaced by click)
+   10. Drag and Drop Styles (Mostly Removed/Obsolete)
    ========================================================================== */
-/* Remove .parent-slot.drag-over, #plant-inventory.drag-over if D&D is gone */
-/* If keeping some D&D for other things, these can stay or be adapted */
+/* These drag-over styles might still be useful if you have other D&D features, 
+   but are not used for plant-to-breeder assignment anymore. */
 .parent-slot.drag-over,
 #plant-inventory.drag-over { 
     background-color: var(--color-deep-purple) !important; 
@@ -510,9 +519,6 @@ h2, h3, h4 {
     border-color: var(--color-neon-lime) !important;
     opacity: 0.8; 
 }
-/* If .plant-card-header is no longer draggable, this rule may be less relevant */
-/* .parent-slot .plant-card .plant-card-header { cursor: grab; } */
-
 
 /* ==========================================================================
    11. Responsive Adjustments
@@ -544,5 +550,19 @@ h2, h3, h4 {
     }
     #game-logo {
         max-height: 80px;
+    }
+    /* Make breeder action buttons in card header take full width on small screens */
+    .plant-card-header .breeder-action-button {
+        width: 100%;
+        margin-left: 0; /* No left margin if it's full width below name */
+        margin-top: var(--spacing-small); /* Add some space below name */
+    }
+    .plant-card-header {
+        flex-direction: column; /* Stack name and button in header on small screens */
+        align-items: flex-start; /* Align items to start */
+    }
+     .plant-card-header h4 {
+        margin-right: 0; /* No right margin */
+        margin-bottom: var(--spacing-small); /* Space below name */
     }
 }
