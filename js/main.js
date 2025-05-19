@@ -25,10 +25,8 @@ let exportModalGlobal, exportedStrainDataTextareaGlobal, closeExportModalButtonG
 let plantImageLightboxGlobal, lightboxPlantNameGlobal, lightboxImageContainerGlobal,
     closeLightboxModalGlobal, downloadPlantImageBtnGlobal, downloadPlantDataBtnGlobal;
 
-// Module-scoped objects for dynamically imported utilities
 let gameUtils = {};
 let plantGeneticsUtils = {};
-
 
 async function loadTraits() {
     logger.info('main.js', "loadTraits() called.");
@@ -113,7 +111,7 @@ function initializeGame() {
     logger.info('main.js', `initializeGame() - Final inventory count: ${inventory.length}`);
     logger.verbose('main.js', "Inventory content IDs:", inventory.map(p => p.id));
     
-    refreshAllDisplays(); // SINGLE INTENDED CALL to update UI after initialization
+    refreshAllDisplays();
     
     logger.info('main.js', "initializeGame() completed.");
     if(breedButtonElement) breedButtonElement.disabled = true;
@@ -122,20 +120,19 @@ function initializeGame() {
 function handleBreederAction(plant, action, slotType = null) {
     logger.info('main.js', `handleBreederAction: Plant ${plant ? plant.name : 'N/A'}, Action: ${action}, Slot: ${slotType}`);
 
-    if (!plant && action === 'add') { // Plant must exist for 'add'
+    if (!plant && action === 'add') {
         logger.error('main.js', `handleBreederAction 'add' called with no plant.`);
         return;
     }
-    // For 'remove', plant and slotType are used to confirm which plant to remove from which slot
     if (action === 'remove' && (!plant || !slotType)) { 
-        logger.error('main.js', `handleBreederAction 'remove' called with missing plant or slotType. Plant: ${plant ? plant.name: 'N/A'}, Slot: ${slotType}`);
+        logger.error('main.js', `handleBreederAction 'remove' called with missing plant or slotType. Plant: ${plant ? plant.name : 'N/A'}, Slot: ${slotType}`);
         return;
     }
 
     if (action === 'add') {
         if ((selectedParent1 && selectedParent1.id === plant.id) || (selectedParent2 && selectedParent2.id === plant.id)) {
             logger.warn('main.js', `Plant ${plant.name} is already selected in a breeder slot.`);
-            // alert(`${plant.name} is already selected.`); // Alert might be redundant if button is disabled
+            // alert(`${plant.name} is already selected.`); // Button should be disabled by UI
             return;
         }
         if (!selectedParent1) {
@@ -145,8 +142,8 @@ function handleBreederAction(plant, action, slotType = null) {
             selectedParent2 = plant;
             logger.info('main.js', `Added ${plant.name} to Parent Slot 2.`);
         } else {
-            logger.warn('main.js', "Both breeder slots are full when trying to add. Action ignored.");
-            // alert("Both breeder slots are full. Remove a plant first to add another."); // Alert might be redundant
+            logger.warn('main.js', "Both breeder slots are full when trying to add. Action should be prevented by UI button state.");
+            // alert("Both breeder slots are full. Remove a plant first to add another."); // Button should be disabled by UI
             return; 
         }
     } else if (action === 'remove') {
@@ -169,10 +166,8 @@ function handleBreederAction(plant, action, slotType = null) {
         }
     }
 
-    // Update UI for breeding slots
     displayPlantInSlot(selectedParent1, parent1SlotElement, TRAIT_DEFINITIONS, allPlantsMap, handleBreederAction);
     displayPlantInSlot(selectedParent2, parent2SlotElement, TRAIT_DEFINITIONS, allPlantsMap, handleBreederAction);
-    // Refresh entire inventory display to update button states on nursery cards
     refreshAllDisplays(); 
     if(breedButtonElement) breedButtonElement.disabled = !(selectedParent1 && selectedParent2);
 }
@@ -193,9 +188,11 @@ function handleDeletePlant(plantIdToDelete) {
         logger.debug('main.js', "Deleted plant was P2, cleared P2.");
         changedSlots = true;
     }
-    refreshAllDisplays(); // Refresh inventory, which also updates breeder button states
-    if(breedButtonElement && changedSlots) { // Only re-evaluate breed button if a selected parent was deleted
+    refreshAllDisplays(); 
+    if(breedButtonElement && changedSlots) { 
         breedButtonElement.disabled = !(selectedParent1 && selectedParent2);
+    } else if (breedButtonElement && !(selectedParent1 && selectedParent2)) { // Ensure disabled if slots not full
+        breedButtonElement.disabled = true;
     }
 }
 
@@ -207,17 +204,31 @@ function breedSelectedPlants() {
     }
     
     let femaleParent, maleParent;
-    if (selectedParent1.expressedSex === 'Female' && selectedParent2.expressedSex === 'Male') { 
+    // Ensure expressedSex property exists before comparing
+    const p1Sex = selectedParent1.expressedSex;
+    const p2Sex = selectedParent2.expressedSex;
+
+    if (p1Sex === 'Female' && p2Sex === 'Male') { 
         femaleParent = selectedParent1; maleParent = selectedParent2; 
-    } else if (selectedParent1.expressedSex === 'Male' && selectedParent2.expressedSex === 'Female') { 
+    } else if (p1Sex === 'Male' && p2Sex === 'Female') { 
         femaleParent = selectedParent2; maleParent = selectedParent1; 
     } else { 
-        let alertMsg = "Breeding failed: Invalid parent combination. Please select one male and one female plant.";
-        if (selectedParent1.expressedSex === selectedParent2.expressedSex) {
-            alertMsg = `Breeding failed: Cannot breed two ${selectedParent1.expressedSex} plants. Select one male and one female.`;
+        let alertMsg = `Breeding failed: Invalid parent sex combination. Please select one male (♂) and one female (♀) plant.`;
+        if (p1Sex && p1Sex === p2Sex) { // Check if expressedSex is defined before comparing
+            alertMsg = `Breeding failed: Cannot breed two ${p1Sex} plants. Select one male (♂) and one female (♀).`;
         }
-        logger.warn('main.js', alertMsg);
+        
+        logger.warn('main.js', `Invalid breeding attempt: P1 (${selectedParent1.name}, ${p1Sex}), P2 (${selectedParent2.name}, ${p2Sex}). Message: ${alertMsg}`);
         alert(alertMsg); 
+
+        // Clear breeder slots on invalid attempt
+        selectedParent1 = null;
+        selectedParent2 = null;
+        displayPlantInSlot(null, parent1SlotElement, TRAIT_DEFINITIONS, allPlantsMap, handleBreederAction);
+        displayPlantInSlot(null, parent2SlotElement, TRAIT_DEFINITIONS, allPlantsMap, handleBreederAction);
+        refreshAllDisplays(); 
+        if(breedButtonElement) breedButtonElement.disabled = true; 
+        
         return; 
     }
 
@@ -244,22 +255,20 @@ function breedSelectedPlants() {
     if (existingOffspringCard) existingOffspringCard.remove();
     if (offspringPlaceholder) offspringPlaceholder.style.display = 'none';
     
-    // Use the imported renderPlantCard for the preview, pass handleBreederAction as no-op for preview
     const offspringPreviewCard = renderPlantCard(offspring, TRAIT_DEFINITIONS, allPlantsMap, 
-                                                null, null, () => {}, // No delete/export/breeder action from preview
-                                                false, 'offspring', // isNurseryCard = false, slot = 'offspring'
-                                                null, null); // No need for P1/P2 selection state here
+                                                null, null, () => {}, 
+                                                false, 'offspring', 
+                                                null, null); 
     offspringPreviewCard.style.cursor = 'default'; 
     offspringDisplayElement.appendChild(offspringPreviewCard);
     
-    // Clear parents from selection state AND UI slots
     selectedParent1 = null; 
     selectedParent2 = null;
     displayPlantInSlot(null, parent1SlotElement, TRAIT_DEFINITIONS, allPlantsMap, handleBreederAction); 
     displayPlantInSlot(null, parent2SlotElement, TRAIT_DEFINITIONS, allPlantsMap, handleBreederAction);
     
-    refreshAllDisplays(); // This will update nursery card buttons and selection highlights
-    if(breedButtonElement) breedButtonElement.disabled = true; // Should always be disabled after breeding
+    refreshAllDisplays(); 
+    if(breedButtonElement) breedButtonElement.disabled = true;
 
     const newPlantInInventory = inventoryDisplayElement.querySelector(`[data-plant-id="${offspring.id}"]`);
     if (newPlantInInventory) {
@@ -284,8 +293,8 @@ function refreshAllDisplays() {
         handleDeletePlant,
         handleExportPlant,
         handleBreederAction,
-        selectedParent1, // Pass the actual selectedParent1 object
-        selectedParent2  // Pass the actual selectedParent2 object
+        selectedParent1, 
+        selectedParent2  
     );
     updateNurseryHeader(inventory.length, TRAIT_DEFINITIONS.constants.MAX_INVENTORY_SIZE);
     highlightSelectedCards(selectedParent1, selectedParent2);
@@ -309,24 +318,89 @@ function handleExportPlant(plantToExp) {
 
 function handleImportStrain() { 
     logger.info('main.js', "handleImportStrain() called.");
-    // ... (Full import logic as previously provided, using gameUtils and plantGeneticsUtils)
-    // This is a long function, assumed to be correct from the last version where it was fully generated.
-    // Key is that it uses gameUtils.clamp, gameUtils.getRandomElement, plantGeneticsUtils.determineExpressedSex
-    if (!TRAIT_DEFINITIONS || !TRAIT_DEFINITIONS.constants) { /* ... */ return; }
-    if (inventory.length >= TRAIT_DEFINITIONS.constants.MAX_INVENTORY_SIZE) { /* ... */ return; }
-    let importDataString = importDataAreaElement.value.trim(); if (!importDataString) { /* ... */ return; }
+    if (!TRAIT_DEFINITIONS || !TRAIT_DEFINITIONS.constants) { logger.error('main.js', "Game data not loaded. Cannot import strain."); alert("Game data not loaded. Cannot import strain."); return; }
+    if (inventory.length >= TRAIT_DEFINITIONS.constants.MAX_INVENTORY_SIZE) { logger.info('main.js', "Import blocked: Nursery full."); alert(`Nursery is full! Max ${TRAIT_DEFINITIONS.constants.MAX_INVENTORY_SIZE} plants. Delete some plants to make space for import.`); return; }
+    let importDataString = importDataAreaElement.value.trim(); if (!importDataString) { logger.warn('main.js', "Import attempted with empty data."); alert("Please paste strain card data into the text area."); return; }
     let cleanedDataString = importDataString.replace(/\/\*.*?\*\/|\/\/.*/g, '');
     try {
         const importedData = JSON.parse(cleanedDataString);
-        /* ... validation checks ... */
+        logger.debug('main.js', "Parsed import data:", importedData);
+        if (!importedData || typeof importedData !== 'object') { logger.warn('main.js', "Import failed: Data not valid object."); alert("Import failed: Data is not a valid strain card object."); return; }
+        if (importedData.version !== "ChronoCrosser_v1.0") { logger.warn('main.js', "Import failed: Incompatible version."); alert("Import failed: Incompatible strain card version or invalid data structure."); return; }
+        if (!importedData.name || typeof importedData.genome !== 'object' || !importedData.genome.sex_chromosomes_gene) { logger.warn('main.js', "Import failed: Missing essential data."); alert("Import failed: Essential data (name, genome, sex chromosomes) missing from strain card."); return; }
+        if (importedData.originalIdForReference) { const existingPlant = inventory.find(p => (p.originalIdForReference === importedData.originalIdForReference && p.name.startsWith(importedData.name)) || (p.id === importedData.originalIdForReference && !p.name.endsWith("(Imported)"))); if (existingPlant) { logger.info('main.js', "Import cancelled: Strain already in nursery."); alert(`Strain "${importedData.name}" (or its original version) appears to already be in your nursery. Import cancelled.`); return; } }
+        
         const newPlant = createPlant(TRAIT_DEFINITIONS, allPlantsMap); 
-        /* ... populate newPlant from importedData using gameUtils and plantGeneticsUtils ... */
+        newPlant.name = importedData.name + " (Imported)"; 
+        newPlant.generation = importedData.generation || 0; 
+        newPlant.genome = { ...importedData.genome }; 
+
+        const sexChromosomeGeneDef = TRAIT_DEFINITIONS.genetic_base_traits.find(t => t.id === 'sex_chromosomes_gene');
+        if (sexChromosomeGeneDef && newPlant.genome.sex_chromosomes_gene && plantGeneticsUtils.determineExpressedSex) {
+            newPlant.expressedSex = plantGeneticsUtils.determineExpressedSex(newPlant.genome.sex_chromosomes_gene, sexChromosomeGeneDef);
+        } else {
+            logger.error('main.js', "Could not determine sex for imported plant due to missing definitions, genome data, or utility function."); newPlant.expressedSex = "Unknown";
+        }
+        logger.debug('main.js', `Imported plant ${newPlant.name} expressed sex: ${newPlant.expressedSex}`);
+
+        TRAIT_DEFINITIONS.numerical_traits.forEach(td => {
+            if (importedData.hasOwnProperty(td.id) && typeof importedData[td.id] === 'number' && gameUtils.clamp) {
+                newPlant[td.id] = gameUtils.clamp(importedData[td.id], td.min, td.max);
+            } else if (!newPlant.hasOwnProperty(td.id) && gameUtils.getRandomElement && td.min !== undefined && td.max !== undefined) { 
+                newPlant[td.id] = gameUtils.getRandomElement([td.min, (td.min + td.max) / 2, td.max].filter(v => !isNaN(v))); 
+            }
+        });
+        TRAIT_DEFINITIONS.categorical_traits.forEach(td => {
+            if (importedData.hasOwnProperty(td.id)) {
+                const traitDef = TRAIT_DEFINITIONS.categorical_traits.find(t => t.id === td.id);
+                if (traitDef && traitDef.values.includes(importedData[td.id])) {
+                     newPlant[td.id] = importedData[td.id];
+                } else {
+                    if (!newPlant[td.id] && traitDef && gameUtils.getRandomElement) newPlant[td.id] = gameUtils.getRandomElement(traitDef.values);
+                }
+            } else if (!newPlant[td.id]) {
+                 const traitDef = TRAIT_DEFINITIONS.categorical_traits.find(t => t.id === td.id);
+                 if(traitDef && gameUtils.getRandomElement) newPlant[td.id] = gameUtils.getRandomElement(traitDef.values);
+            }
+        });
+        if (newPlant.primaryTerpene === newPlant.secondaryTerpene && newPlant.secondaryTerpene !== null && gameUtils.getRandomElement) {
+            const secondaryTerpValues = TRAIT_DEFINITIONS.categorical_traits.find(t => t.id === 'secondaryTerpene').values;
+            newPlant.secondaryTerpene = gameUtils.getRandomElement(secondaryTerpValues.filter(v => v !== newPlant.primaryTerpene && v !== null)) || null;
+        }
+
+        const heightTrait = TRAIT_DEFINITIONS.numerical_traits.find(t => t.id === 'height');
+        const widthTrait = TRAIT_DEFINITIONS.numerical_traits.find(t => t.id === 'width');
+        if (heightTrait && widthTrait && TRAIT_DEFINITIONS.constants) { // Ensure these are defined
+            newPlant.calculatedYieldGrams = (newPlant.height / (heightTrait.unit === 'cm' ? 100 : 1)) * 
+                                          (newPlant.width / (widthTrait.unit === 'cm' ? 100 : 1)) * 
+                                          newPlant.genetic_yield_potential * 
+                                          TRAIT_DEFINITIONS.constants.YIELD_BASE_GRAMS_PER_M2_AT_FULL_POTENTIAL;
+            
+            if (newPlant.expressedSex === 'Male') newPlant.calculatedYieldGrams *= 0.05; 
+            const stabilityGeneAlleles = newPlant.genome.sex_stability_gene; 
+            const stabilityDef = TRAIT_DEFINITIONS.genetic_risk_traits.find(t => t.id === 'sex_stability_gene');
+            if (stabilityGeneAlleles && stabilityDef && stabilityDef.alleles && stabilityDef.alleles.unstable && 
+                stabilityGeneAlleles[0] === stabilityDef.alleles.unstable && 
+                stabilityGeneAlleles[1] === stabilityDef.alleles.unstable) {
+                newPlant.calculatedYieldGrams *= 0.75; 
+            }
+            newPlant.calculatedYieldGrams = Math.max(0, parseFloat(newPlant.calculatedYieldGrams.toFixed(0)));
+        } else {
+            logger.error("main.js: Cannot calculate yield for imported plant, missing trait definitions or constants.");
+            newPlant.calculatedYieldGrams = 0;
+        }
+
+        newPlant.parents = [null, null]; 
+        newPlant.originalIdForReference = importedData.originalIdForReference;
         inventory.push(newPlant); 
         refreshAllDisplays(); 
         if(importDataAreaElement) importDataAreaElement.value = ""; 
         logger.info('main.js', `Strain "${newPlant.name}" imported successfully!`);
         alert(`Strain "${newPlant.name}" imported successfully!`);
-    } catch (error) { /* ... error handling ... */ }
+    } catch (error) { 
+        if (error instanceof SyntaxError) { logger.error('main.js', "Import SyntaxError (JSON format):", error); alert("Import failed: Invalid JSON. Check for extra text/comments."); } 
+        else { logger.error('main.js', "Import error (other):", error); alert("Import failed: Unexpected error. See console."); } 
+    }
 }
 
 
@@ -374,7 +448,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeUIManager(
         lineageTooltipElementGlobal, 
         exportModalGlobal, exportedStrainDataTextareaGlobal, closeExportModalButtonGlobal, copyExportedDataButtonGlobal,
-        // handlePlantDrop, // This was correctly removed for click-to-assign
+        // No onPlantDropCallback for click-to-assign
         plantImageLightboxGlobal, lightboxPlantNameGlobal, lightboxImageContainerGlobal, 
         closeLightboxModalGlobal, 
         downloadPlantImageBtnGlobal, downloadPlantDataBtnGlobal
@@ -390,7 +464,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const plantGeneticsModule = await import('./plantGenetics.js');
         logger.debug('main.js', "plantGenetics.js module loaded:", !!plantGeneticsModule);
 
-        // Populate the module-scoped utility objects
         if(utilsModule.clamp) gameUtils.clamp = utilsModule.clamp; else logger.error("main.js: clamp utility not found in utilsModule!");
         if(utilsModule.getRandomElement) gameUtils.getRandomElement = utilsModule.getRandomElement; else logger.error("main.js: getRandomElement utility not found in utilsModule!");
         if(utilsModule.getRandom) gameUtils.getRandom = utilsModule.getRandom; else logger.error("main.js: getRandom utility not found in utilsModule!");
@@ -407,5 +480,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         logger.info('main.js', "Game initialized and event listeners attached.");
     } catch (error) {
         logger.error('main.js', "CRITICAL Initialization failed in DOMContentLoaded:", error);
+        // Alert for loadTraits failure is handled within loadTraits itself.
     }
 });
