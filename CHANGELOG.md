@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] - 2026-04-05
+
+### Added
+- Version number display in the page footer.
+- `.nojekyll` file for clean GitHub Pages deployment.
+
+### Fixed
+- Implemented `handleDownloadPlantImage()` — PNG export from lightbox was a non-functional stub.
+- Implemented `handleDownloadPlantData()` — JSON download from lightbox was a non-functional stub.
+- Implemented `showExportModal()` — export modal with clipboard copy was a non-functional stub.
+- Fixed parameter order bug in `displayPlantInSlot()` that passed `onBreederActionCallback` in the wrong position, breaking breeder slot card rendering and remove buttons.
+- Fixed double mutation chance on secondary terpene — two independent `Math.random()` calls inflated the effective rate.
+- Fixed offspring preview card crash when clicking delete/export buttons (null callback).
+- Fixed "(Imported)" suffix stacking on re-imported strains.
+- Removed dead identical-branch ternary in placeholder text.
+
+---
+
 ## [1.0.0] - 2023-10-27 (Assumed Date - Replace with Actual)
 
 This is the first stable release incorporating core gameplay mechanics, a significantly enhanced user interface, and robust debugging features.

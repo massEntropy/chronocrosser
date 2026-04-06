@@ -1,4 +1,4 @@
-# ChronoCrosser: Cannabis Cultivator V1.0
+# ChronoCrosser: Cannabis Cultivator V1.0.1
 
 <p align="center"><img src="images/logo.png" alt="ChronoCrosser Logo" width="300"/></p>
 

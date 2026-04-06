@@ -146,10 +146,17 @@ footer {
     text-align: center;
     margin-top: var(--spacing-xlarge);
     padding: var(--spacing-large);
-    background: var(--color-dark-background); 
+    background: var(--color-dark-background);
     font-size: 0.9em;
     color: #aaa;
     border-top: 1px solid var(--color-deep-purple);
+}
+
+footer .version-text {
+    margin-top: var(--spacing-small);
+    font-family: var(--font-monospace);
+    font-size: 0.75em;
+    color: #555;
 }
 
 /* ==========================================================================
