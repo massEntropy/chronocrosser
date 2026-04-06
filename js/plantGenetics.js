@@ -28,7 +28,10 @@ export function inheritCategoricalTrait(p1Val, p2Val, traitDef, TRAIT_DEFINITION
     }
 
     let inheritedValue;
-    if (Math.random() < TRAIT_DEFINITIONS_CONSTANTS.CATEGORICAL_MUTATION_CHANCE || (traitDef.id === 'secondaryTerpene' && Math.random() < 0.2)) {
+    const mutationRoll = Math.random();
+    const shouldMutate = mutationRoll < TRAIT_DEFINITIONS_CONSTANTS.CATEGORICAL_MUTATION_CHANCE ||
+                         (traitDef.id === 'secondaryTerpene' && mutationRoll < 0.2);
+    if (shouldMutate) {
         const possibleValues = traitDef.values.filter(v => currentPlant && traitDef.id === 'secondaryTerpene' ? v !== currentPlant.primaryTerpene : true);
         inheritedValue = getRandomElement(possibleValues.length > 0 ? possibleValues : traitDef.values); // Fallback to full list if filter is empty
         // logger.debug('plantGenetics', `${traitDef.id} - Mutated to: ${inheritedValue}`);

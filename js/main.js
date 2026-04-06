@@ -254,9 +254,9 @@ function breedSelectedPlants() {
     if (existingOffspringCard) existingOffspringCard.remove();
     if (offspringPlaceholder) offspringPlaceholder.style.display = 'none';
     
-    const offspringPreviewCard = renderPlantCard(offspring, TRAIT_DEFINITIONS, allPlantsMap, 
-                                                null, null, () => {}, 
-                                                false, 'offspring', 
+    const offspringPreviewCard = renderPlantCard(offspring, TRAIT_DEFINITIONS, allPlantsMap,
+                                                () => {}, () => {}, () => {},
+                                                false, 'offspring',
                                                 null, null); 
     offspringPreviewCard.style.cursor = 'default'; 
     offspringDisplayElement.appendChild(offspringPreviewCard);
@@ -330,7 +330,7 @@ function handleImportStrain() {
         if (importedData.originalIdForReference) { const existingPlant = inventory.find(p => (p.originalIdForReference === importedData.originalIdForReference && p.name.startsWith(importedData.name)) || (p.id === importedData.originalIdForReference && !p.name.endsWith("(Imported)"))); if (existingPlant) { logger.info('main.js', "Import cancelled: Strain already in nursery."); alert(`Strain "${importedData.name}" (or its original version) appears to already be in your nursery. Import cancelled.`); return; } }
         
         const newPlant = createPlant(TRAIT_DEFINITIONS, allPlantsMap); 
-        newPlant.name = importedData.name + " (Imported)"; 
+        newPlant.name = importedData.name.replace(/\s*\(Imported\)$/g, '') + " (Imported)"; 
         newPlant.generation = importedData.generation || 0; 
         newPlant.genome = { ...importedData.genome }; 
 

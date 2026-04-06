@@ -116,9 +116,99 @@ function openPlantImageLightbox(plant, TRAIT_DEFINITIONS_PARAM) {
     else logger.error('uiManager', "plantImageLightboxElement missing for lightbox.");
 }
 
-async function handleDownloadPlantImage() { /* ... Same as previous full version ... */ }
-function handleDownloadPlantData() { /* ... Same as previous full version ... */ }
-export function showExportModal(strainDataString) { /* ... Same as previous full version ... */ }
+async function handleDownloadPlantImage() {
+    if (!currentPlantForLightbox || !lightboxImageContainerElement) {
+        logger.error('uiManager', "Cannot download image: no plant or container.");
+        return;
+    }
+    const svgElement = lightboxImageContainerElement.querySelector('svg');
+    if (!svgElement) {
+        logger.error('uiManager', "No SVG found in lightbox container for download.");
+        return;
+    }
+    try {
+        const serializer = new XMLSerializer();
+        const svgString = serializer.serializeToString(svgElement);
+        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = parseInt(svgElement.getAttribute('viewBox')?.split(' ')[2]) || 500;
+            canvas.height = parseInt(svgElement.getAttribute('viewBox')?.split(' ')[3]) || 550;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            URL.revokeObjectURL(url);
+
+            const pngUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `${(currentPlantForLightbox.name || 'plant').replace(/[^a-z0-9]/gi, '_')}.png`;
+            link.href = pngUrl;
+            link.click();
+            logger.info('uiManager', `PNG downloaded for ${currentPlantForLightbox.name}`);
+        };
+        img.onerror = () => {
+            URL.revokeObjectURL(url);
+            logger.error('uiManager', "Failed to load SVG into Image for PNG conversion.");
+        };
+        img.src = url;
+    } catch (error) {
+        logger.error('uiManager', "Error during plant image download:", error);
+    }
+}
+
+function handleDownloadPlantData() {
+    if (!currentPlantForLightbox) {
+        logger.error('uiManager', "Cannot download data: no plant selected in lightbox.");
+        return;
+    }
+    const plant = currentPlantForLightbox;
+    const exportData = {
+        version: "ChronoCrosser_v1.0",
+        name: plant.name, generation: plant.generation,
+        expressedSex: plant.expressedSex, height: plant.height, width: plant.width,
+        genetic_yield_potential: plant.genetic_yield_potential, thc: plant.thc, cbd: plant.cbd,
+        primaryColor: plant.primaryColor, accentColor: plant.accentColor,
+        primaryTerpene: plant.primaryTerpene, secondaryTerpene: plant.secondaryTerpene,
+        genome: plant.genome, originalIdForReference: plant.id,
+        originalParentsForReference: plant.parents
+    };
+    const jsonString = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = `${(plant.name || 'plant').replace(/[^a-z0-9]/gi, '_')}.json`;
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
+    logger.info('uiManager', `JSON data downloaded for ${plant.name}`);
+}
+
+export function showExportModal(strainDataString) {
+    if (!exportModalElement || !exportedStrainDataTextarea) {
+        logger.error('uiManager', "Cannot show export modal: modal or textarea element missing.");
+        return;
+    }
+    exportedStrainDataTextarea.value = strainDataString;
+    exportModalElement.style.display = "flex";
+
+    if (copyExportedDataButtonElement) {
+        copyExportedDataButtonElement.onclick = () => {
+            navigator.clipboard.writeText(strainDataString).then(() => {
+                copyExportedDataButtonElement.textContent = "Copied!";
+                setTimeout(() => { copyExportedDataButtonElement.textContent = "Copy to Clipboard"; }, 2000);
+                logger.info('uiManager', "Strain data copied to clipboard.");
+            }).catch(err => {
+                logger.error('uiManager', "Failed to copy to clipboard:", err);
+                exportedStrainDataTextarea.select();
+            });
+        };
+    }
+    logger.info('uiManager', "Export modal displayed.");
+}
 
 export function renderPlantCard(
     plant, 
@@ -369,11 +459,11 @@ export function displayPlantInSlot(plant, slotElement, TRAIT_DEFINITIONS_PARAM, 
         if (placeholder) placeholder.style.display = 'none';
         const parentSlotType = slotElement.id === 'parent1-slot' ? 'parent1' : (slotElement.id === 'parent2-slot' ? 'parent2' : 'offspring');
         const card = renderPlantCard(
-            plant, TRAIT_DEFINITIONS_PARAM, allPlantsMap, 
-            null, null, null, 
-            onBreederActionCallback, 
+            plant, TRAIT_DEFINITIONS_PARAM, allPlantsMap,
+            null, null,
+            onBreederActionCallback,
             false, parentSlotType,
-            null, null 
+            null, null
         ); 
         if (card) slotElement.appendChild(card);
         else logger.error('uiManager', `renderPlantCard returned null for slot display for plant: ${plant.name}`);
@@ -383,7 +473,7 @@ export function displayPlantInSlot(plant, slotElement, TRAIT_DEFINITIONS_PARAM, 
         } else if (slotElement.id !== 'offspring-display' && !slotElement.querySelector('.plant-card-placeholder')) { 
             const newPlaceholder = document.createElement('div');
             newPlaceholder.className = 'plant-card-placeholder';
-            newPlaceholder.textContent = slotElement.id === 'parent1-slot' ? 'Click "+ Breeder" on Plant' : 'Click "+ Breeder" on Plant';
+            newPlaceholder.textContent = 'Click "+ Breeder" on Plant';
             slotElement.appendChild(newPlaceholder);
             logger.debug('uiManager', `Added new placeholder to slot ${slotElement.id}`);
         }
